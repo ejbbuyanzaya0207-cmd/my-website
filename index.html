@@ -3,22 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Шагай Аялал - GitHub Edition</title>
+    <title>Шагай Аялал - Heritage Game</title>
     <style>
         :root {
             --mongol-blue: #003366;
             --gold: #FFD700;
+            --white: #f4f4f4;
         }
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #f0f0f0;
+            background-color: #e0e0e0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin: 0;
             padding: 20px;
+            margin: 0;
         }
-        .stats {
+        .stats-bar {
             display: flex;
             gap: 20px;
             background: var(--mongol-blue);
@@ -26,59 +27,61 @@
             padding: 15px 30px;
             border-radius: 50px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
         canvas {
-            background: #fff;
-            border: 4px solid var(--mongol-blue);
-            border-radius: 10px;
+            background: #ffffff;
+            border: 5px solid var(--mongol-blue);
+            border-radius: 15px;
             cursor: crosshair;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
-        .ui-container {
+        .ui-panel {
             margin-top: 20px;
             text-align: center;
-            max-width: 800px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            width: 800px;
         }
-        .build-menu {
+        .build-options {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
+            gap: 15px;
             margin-top: 15px;
         }
         button {
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
             background: var(--mongol-blue);
             color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
             cursor: pointer;
+            font-weight: bold;
             transition: 0.3s;
         }
-        button:hover { background: #0055aa; }
+        button:hover { background: #0055aa; transform: translateY(-2px); }
         button:disabled { background: #ccc; cursor: not-allowed; }
-        .instructions { font-size: 0.9em; color: #666; margin-top: 10px; }
+        .log { color: #666; font-style: italic; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <div class="stats">
+    <div class="stats-bar">
         <div>💰 Шагай: <span id="balance">0</span></div>
-        <div>🎯 Оносон: <span id="hits">0</span></div>
+        <div>🎯 Онолт: <span id="hits">0</span></div>
         <div>🏠 Гэр: <span id="ger-status">Угсраагүй</span></div>
     </div>
 
     <canvas id="gameCanvas" width="800" height="400"></canvas>
 
-    <div class="ui-container">
-        <div class="instructions">
-            💡 <b>Заавар:</b> Шагай дээр хулганаар дарж, хойш татаж байгаад тавьж харвана. Байнуудыг онож оноо цуглуулаарай!
-        </div>
-
-        <div class="build-menu">
-            <button onclick="buildGer('hana', 50)" id="btn-hana">Хана (50)</button>
-            <button onclick="buildGer('uni', 80)" id="btn-uni">Унь (80)</button>
-            <button onclick="buildGer('toono', 150)" id="btn-toono">Тооно (150)</button>
+    <div class="ui-panel">
+        <div id="game-log" class="log">Заавар: Шагайгаа хойш татаж байгаад тавьж харвана уу!</div>
+        
+        <div class="build-options">
+            <button onclick="build('hana', 50)" id="btn-hana">Хана барих (50)</button>
+            <button onclick="build('uni', 80)" id="btn-uni">Унь өлгөх (80)</button>
+            <button onclick="build('toono', 150)" id="btn-toono">Тооно залах (150)</button>
         </div>
     </div>
 
@@ -86,48 +89,62 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
-    let gameState = {
-        score: 0,
-        hits: 0,
-        gerParts: { hana: false, uni: false, toono: false }
+    // Тоглоомын өгөгдөл
+    const SHAGAI_SIDES = [
+        { icon: "🐎", name: "Морь", points: 50 },
+        { icon: "🐑", name: "Хонь", points: 10 },
+        { icon: "🐪", name: "Тэмээ", points: 30 },
+        { icon: "🐐", name: "Ямаа", points: 10 }
+    ];
+
+    let state = {
+        shagaiBalance: 0,
+        totalHits: 0,
+        ger: { hana: false, uni: false, toono: false }
     };
 
     let isDragging = false;
     let startX, startY, mouseX, mouseY;
 
-    // Өнгөнүүд (JS дээр шууд текстээр бичнэ)
-    const SHAGAI_COLOR = "#8B4513";
-    const TARGET_COLOR = "#d32f2f";
-
-    let shagai = {
-        x: 150, y: 200,
-        radius: 15,
+    // Харвах шагай
+    let shooter = {
+        x: 100, y: 200,
         vx: 0, vy: 0,
-        isMoving: false,
-        friction: 0.98
+        radius: 20,
+        moving: false,
+        side: SHAGAI_SIDES[0]
     };
 
-    let targets = [
-        { x: 600, y: 150, radius: 15, active: true },
-        { x: 650, y: 200, radius: 15, active: true },
-        { x: 600, y: 250, radius: 15, active: true }
-    ];
+    // Байнууд (Санамсаргүй байрлалтай 3 шагай)
+    let targets = [];
+    function initTargets() {
+        targets = [];
+        for(let i=0; i<3; i++) {
+            targets.push({
+                x: 500 + Math.random() * 250,
+                y: 50 + Math.random() * 300,
+                radius: 18,
+                active: true,
+                side: SHAGAI_SIDES[Math.floor(Math.random() * 4)]
+            });
+        }
+    }
+    initTargets();
 
-    canvas.addEventListener('mousedown', (e) => {
-        if (shagai.isMoving) return;
+    // Input Events
+    canvas.addEventListener('mousedown', e => {
+        if (shooter.moving) return;
         const rect = canvas.getBoundingClientRect();
         let mX = e.clientX - rect.left;
         let mY = e.clientY - rect.top;
 
-        let dist = Math.hypot(mX - shagai.x, mY - shagai.y);
-        if (dist < shagai.radius * 2) {
+        if (Math.hypot(mX - shooter.x, mY - shooter.y) < shooter.radius * 1.5) {
             isDragging = true;
-            startX = mX;
-            startY = mY;
+            startX = mX; startY = mY;
         }
     });
 
-    canvas.addEventListener('mousemove', (e) => {
+    canvas.addEventListener('mousemove', e => {
         const rect = canvas.getBoundingClientRect();
         mouseX = e.clientX - rect.left;
         mouseY = e.clientY - rect.top;
@@ -136,97 +153,111 @@
     window.addEventListener('mouseup', () => {
         if (!isDragging) return;
         isDragging = false;
-        shagai.vx = (startX - mouseX) * 0.12;
-        shagai.vy = (startY - mouseY) * 0.12;
-        shagai.isMoving = true;
+        shooter.vx = (startX - mouseX) * 0.15;
+        shooter.vy = (startY - mouseY) * 0.15;
+        shooter.moving = true;
     });
 
-    function buildGer(part, cost) {
-        if (gameState.score >= cost) {
-            gameState.score -= cost;
-            gameState.gerParts[part] = true;
+    function build(part, cost) {
+        if (state.shagaiBalance >= cost) {
+            state.shagaiBalance -= cost;
+            state.ger[part] = true;
             document.getElementById(`btn-${part}`).disabled = true;
             updateUI();
-            checkWin();
+            if(state.ger.hana && state.ger.uni && state.ger.toono) {
+                document.getElementById('game-log').innerText = "✨ БАЯР ХҮРГЭЕ! Гэр бүрэн баригдлаа! ✨";
+            }
         } else {
             alert("Шагай хүрэлцэхгүй байна!");
         }
     }
 
     function updateUI() {
-        document.getElementById('balance').innerText = gameState.score;
-        document.getElementById('hits').innerText = gameState.hits;
-        let p = gameState.gerParts;
-        let status = (p.hana && p.uni && p.toono) ? "Бүрэн баригдсан ✨" : "Баригдаж байгаа...";
-        document.getElementById('ger-status').innerText = status;
+        document.getElementById('balance').innerText = state.shagaiBalance;
+        document.getElementById('hits').innerText = state.totalHits;
+        const p = state.ger;
+        document.getElementById('ger-status').innerText = (p.hana && p.uni && p.toono) ? "Бүрэн баригдсан" : "Дутуу...";
     }
 
-    function checkWin() {
-        if (gameState.gerParts.hana && gameState.gerParts.uni && gameState.gerParts.toono) {
-            alert("Баяр хүргэе! Та гэрээ бүрэн барьж дууслаа.");
-        }
-    }
+    function drawEntity(x, y, radius, side, isShooter) {
+        // Шагайн биет (зууван)
+        ctx.beginPath();
+        ctx.ellipse(x, y, radius, radius * 0.7, 0, 0, Math.PI * 2);
+        ctx.fillStyle = isShooter ? "#D2B48C" : "#f4f4f4";
+        ctx.fill();
+        ctx.strokeStyle = "#8B4513";
+        ctx.lineWidth = 2;
+        ctx.stroke();
 
-    function resetShagai() {
-        shagai.x = 150; shagai.y = 200;
-        shagai.vx = 0; shagai.vy = 0;
-        shagai.isMoving = false;
+        // Дүрс (Emoji)
+        ctx.font = `${radius}px Arial`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(side.icon, x, y);
     }
 
     function gameLoop() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Чиглүүлэгч шугам
+        // Зурхай зурах
+        ctx.strokeStyle = "#eee";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(50, 50, 700, 300);
+
+        // Хүч заагч шугам
         if (isDragging) {
             ctx.beginPath();
             ctx.setLineDash([5, 5]);
-            ctx.moveTo(shagai.x, shagai.y);
+            ctx.moveTo(shooter.x, shooter.y);
             ctx.lineTo(mouseX, mouseY);
-            ctx.strokeStyle = "rgba(0,0,0,0.3)";
+            ctx.strokeStyle = "red";
             ctx.stroke();
             ctx.setLineDash([]);
         }
 
-        // Шагайн хөдөлгөөн
-        if (shagai.isMoving) {
-            shagai.x += shagai.vx;
-            shagai.y += shagai.vy;
-            shagai.vx *= shagai.friction;
-            shagai.vy *= shagai.friction;
+        // Хөдөлгөөн
+        if (shooter.moving) {
+            shooter.x += shooter.vx;
+            shooter.y += shooter.vy;
+            shooter.vx *= 0.98; // Үрэлт
+            shooter.vy *= 0.98;
 
-            if (shagai.x < 0 || shagai.x > canvas.width) shagai.vx *= -1;
-            if (shagai.y < 0 || shagai.y > canvas.height) shagai.vy *= -1;
+            // Хана мөргөх
+            if (shooter.x < 0 || shooter.x > canvas.width) shooter.vx *= -0.8;
+            if (shooter.y < 0 || shooter.y > canvas.height) shooter.vy *= -0.8;
 
-            if (Math.abs(shagai.vx) < 0.2 && Math.abs(shagai.vy) < 0.2) resetShagai();
+            // Зогсох
+            if (Math.abs(shooter.vx) < 0.1 && Math.abs(shooter.vy) < 0.1) {
+                shooter.moving = false;
+                shooter.x = 100; shooter.y = 200;
+                shooter.side = SHAGAI_SIDES[Math.floor(Math.random() * 4)];
+            }
         }
 
-        // Байнууд зурах
+        // Мөргөлдөөн шалгах
         targets.forEach(t => {
             if (t.active) {
-                let dist = Math.hypot(shagai.x - t.x, shagai.y - t.y);
-                if (dist < shagai.radius + t.radius) {
+                let dist = Math.hypot(shooter.x - t.x, shooter.y - t.y);
+                if (dist < shooter.radius + t.radius) {
                     t.active = false;
-                    gameState.score += 20;
-                    gameState.hits += 1;
+                    state.shagaiBalance += t.side.points;
+                    state.totalHits++;
+                    document.getElementById('game-log').innerText = `Онолоо! ${t.side.name} бууж +${t.side.points} оноо авлаа.`;
                     updateUI();
-                    setTimeout(() => { 
-                        t.active = true; 
-                        t.x = 500 + Math.random() * 200; 
-                        t.y = 100 + Math.random() * 200; 
+                    // 1 секундын дараа шинэ бай гарч ирэх
+                    setTimeout(() => {
+                        t.active = true;
+                        t.x = 500 + Math.random() * 250;
+                        t.y = 50 + Math.random() * 300;
+                        t.side = SHAGAI_SIDES[Math.floor(Math.random() * 4)];
                     }, 1000);
                 }
-                ctx.fillStyle = TARGET_COLOR;
-                ctx.beginPath();
-                ctx.arc(t.x, t.y, t.radius, 0, Math.PI * 2);
-                ctx.fill();
+                drawEntity(t.x, t.y, t.radius, t.side, false);
             }
         });
 
-        // Гол шагай зурах
-        ctx.fillStyle = SHAGAI_COLOR;
-        ctx.beginPath();
-        ctx.arc(shagai.x, shagai.y, shagai.radius, 0, Math.PI * 2);
-        ctx.fill();
+        // Shooter зурах
+        drawEntity(shooter.x, shooter.y, shooter.radius, shooter.side, true);
 
         requestAnimationFrame(gameLoop);
     }
