@@ -8,7 +8,6 @@
         :root {
             --mongol-blue: #003366;
             --gold: #FFD700;
-            --shagai-brown: #8B4513;
         }
         body {
             font-family: 'Arial', sans-serif;
@@ -96,7 +95,10 @@
     let isDragging = false;
     let startX, startY, mouseX, mouseY;
 
-    // Харвах шагай
+    // Өнгөнүүд (JS дээр шууд текстээр бичнэ)
+    const SHAGAI_COLOR = "#8B4513";
+    const TARGET_COLOR = "#d32f2f";
+
     let shagai = {
         x: 150, y: 200,
         radius: 15,
@@ -105,7 +107,6 @@
         friction: 0.98
     };
 
-    // Байнууд
     let targets = [
         { x: 600, y: 150, radius: 15, active: true },
         { x: 650, y: 200, radius: 15, active: true },
@@ -115,11 +116,15 @@
     canvas.addEventListener('mousedown', (e) => {
         if (shagai.isMoving) return;
         const rect = canvas.getBoundingClientRect();
-        startX = e.clientX - rect.left;
-        startY = e.clientY - rect.top;
+        let mX = e.clientX - rect.left;
+        let mY = e.clientY - rect.top;
 
-        let dist = Math.hypot(startX - shagai.x, startY - shagai.y);
-        if (dist < shagai.radius * 2) isDragging = true;
+        let dist = Math.hypot(mX - shagai.x, mY - shagai.y);
+        if (dist < shagai.radius * 2) {
+            isDragging = true;
+            startX = mX;
+            startY = mY;
+        }
     });
 
     canvas.addEventListener('mousemove', (e) => {
@@ -171,10 +176,6 @@
     function gameLoop() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Зурхай/Талбай зурах
-        ctx.strokeStyle = "#eee";
-        ctx.strokeRect(50, 50, 700, 300);
-
         // Чиглүүлэгч шугам
         if (isDragging) {
             ctx.beginPath();
@@ -193,14 +194,13 @@
             shagai.vx *= shagai.friction;
             shagai.vy *= shagai.friction;
 
-            // Хана мөргөх
             if (shagai.x < 0 || shagai.x > canvas.width) shagai.vx *= -1;
             if (shagai.y < 0 || shagai.y > canvas.height) shagai.vy *= -1;
 
             if (Math.abs(shagai.vx) < 0.2 && Math.abs(shagai.vy) < 0.2) resetShagai();
         }
 
-        // Байнууд зурах ба мөргөлдөөн шалгах
+        // Байнууд зурах
         targets.forEach(t => {
             if (t.active) {
                 let dist = Math.hypot(shagai.x - t.x, shagai.y - t.y);
@@ -209,9 +209,13 @@
                     gameState.score += 20;
                     gameState.hits += 1;
                     updateUI();
-                    setTimeout(() => { t.active = true; t.x = 500 + Math.random() * 200; t.y = 100 + Math.random() * 200; }, 1000);
+                    setTimeout(() => { 
+                        t.active = true; 
+                        t.x = 500 + Math.random() * 200; 
+                        t.y = 100 + Math.random() * 200; 
+                    }, 1000);
                 }
-                ctx.fillStyle = "#d32f2f";
+                ctx.fillStyle = TARGET_COLOR;
                 ctx.beginPath();
                 ctx.arc(t.x, t.y, t.radius, 0, Math.PI * 2);
                 ctx.fill();
@@ -219,13 +223,10 @@
         });
 
         // Гол шагай зурах
-        ctx.fillStyle = var(--shagai-brown);
+        ctx.fillStyle = SHAGAI_COLOR;
         ctx.beginPath();
         ctx.arc(shagai.x, shagai.y, shagai.radius, 0, Math.PI * 2);
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = "rgba(0,0,0,0.2)";
         ctx.fill();
-        ctx.shadowBlur = 0;
 
         requestAnimationFrame(gameLoop);
     }
