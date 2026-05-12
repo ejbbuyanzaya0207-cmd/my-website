@@ -1,1687 +1,198 @@
-# Shagain Ayalal - Монгол Тоглоом
-
-Би танд бүрэн гүйцэд веб тоглоом бичиж өгье. Эхлээд архитектурыг тайлбарлаж, дараа нь код өгье.
-
-## Ямар платформ ашиглах вэ?
-
-| Платформ | Давуу тал | Хэрхэн ашиглах |
-|----------|-----------|----------------|
-| **CodePen.io** | Шууд browser-т ажилладаг, хуваалцах амархан | pen үүсгээд HTML/CSS/JS tab-д хуулах |
-| **GitHub Pages** | Үнэгүй hosting, professional | Repository үүсгээд index.html upload |
-| **Replit.com** | Online IDE, шууд run хийнэ | HTML/CSS/JS project үүсгэх |
-| **VS Code + Live Server** | Local development | Extension суулгаад ажиллуулах |
-
-**Зөвлөмж: GitHub Pages эсвэл Replit ашиглахыг зөвлөж байна**
-
----
-
-## Бүтэн код:
-
-```html
 <!DOCTYPE html>
 <html lang="mn">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Шагай Аялал - Монгол Тоглоом</title>
-<style>
-  /* ===== FONTS & RESET ===== */
-  @import url('https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap');
-  
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  
-  :root {
-    --gold: #f0c040;
-    --dark-gold: #c8960c;
-    --brown: #8B4513;
-    --dark-brown: #5C2D0A;
-    --cream: #FFF8E7;
-    --sky-top: #1a1a4e;
-    --sky-mid: #2d5a8e;
-    --sky-bot: #87CEEB;
-    --grass: #3a7d2c;
-    --grass-dark: #2d6020;
-    --mountain: #6b8c6b;
-    --red: #c0392b;
-    --white: #ffffff;
-  }
-
-  body {
-    font-family: 'Segoe UI', Arial, sans-serif;
-    background: #000;
-    overflow: hidden;
-    width: 100vw;
-    height: 100vh;
-    color: #333;
-  }
-
-  /* ===== SCREEN MANAGEMENT ===== */
-  .screen {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    display: none;
-    z-index: 1;
-  }
-  .screen.active { display: flex; }
-
-  /* ===== ANIMATED BACKGROUND ===== */
-  .bg-landscape {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    overflow: hidden;
-    z-index: 0;
-  }
-
-  /* Sky gradient */
-  .sky {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 60%;
-    background: linear-gradient(180deg,
-      #0d1b4b 0%,
-      #1a3a7a 25%,
-      #2e6db4 55%,
-      #87ceeb 80%,
-      #b8e0f7 100%
-    );
-  }
-
-  /* Stars */
-  .stars-layer {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 40%;
-    z-index: 1;
-  }
-  .star {
-    position: absolute;
-    background: #fff;
-    border-radius: 50%;
-    animation: twinkle 2s infinite alternate;
-  }
-  @keyframes twinkle {
-    from { opacity: 0.3; transform: scale(1); }
-    to { opacity: 1; transform: scale(1.3); }
-  }
-
-  /* Sun */
-  .sun {
-    position: absolute;
-    top: 12%;
-    right: 15%;
-    width: 70px;
-    height: 70px;
-    background: radial-gradient(circle, #fff9c4, #ffd700, #ff8c00);
-    border-radius: 50%;
-    box-shadow: 0 0 30px #ffd700, 0 0 60px #ff8c0088;
-    animation: sunPulse 4s ease-in-out infinite;
-    z-index: 3;
-  }
-  @keyframes sunPulse {
-    0%, 100% { box-shadow: 0 0 30px #ffd700, 0 0 60px #ff8c0088; }
-    50% { box-shadow: 0 0 50px #ffd700, 0 0 100px #ff8c00aa; }
-  }
-
-  /* Clouds */
-  .cloud {
-    position: absolute;
-    background: rgba(255,255,255,0.9);
-    border-radius: 50px;
-    z-index: 2;
-  }
-  .cloud::before, .cloud::after {
-    content: '';
-    position: absolute;
-    background: rgba(255,255,255,0.9);
-    border-radius: 50%;
-  }
-  .cloud-1 { top: 10%; left: -200px; width: 140px; height: 45px; animation: cloudMove 25s linear infinite; }
-  .cloud-1::before { width: 70px; height: 70px; top: -35px; left: 20px; }
-  .cloud-1::after { width: 50px; height: 50px; top: -25px; left: 70px; }
-  .cloud-2 { top: 18%; left: -300px; width: 100px; height: 35px; animation: cloudMove 35s linear infinite 8s; opacity: 0.8; }
-  .cloud-2::before { width: 50px; height: 50px; top: -25px; left: 15px; }
-  .cloud-2::after { width: 40px; height: 40px; top: -20px; left: 50px; }
-  .cloud-3 { top: 8%; left: -150px; width: 120px; height: 40px; animation: cloudMove 30s linear infinite 15s; opacity: 0.7; }
-  .cloud-3::before { width: 60px; height: 60px; top: -30px; left: 20px; }
-  @keyframes cloudMove {
-    from { left: -300px; }
-    to { left: 110%; }
-  }
-
-  /* Mountains */
-  .mountains-bg {
-    position: absolute;
-    bottom: 38%;
-    width: 100%;
-    z-index: 2;
-  }
-  .mountains-bg svg { width: 100%; height: auto; display: block; }
-
-  /* Ground / Grass layers */
-  .ground-layer {
-    position: absolute;
-    bottom: 0; left: 0;
-    width: 100%;
-    z-index: 3;
-  }
-  .ground-far {
-    position: absolute;
-    bottom: 35%;
-    width: 100%;
-    height: 12%;
-    background: linear-gradient(180deg, #5a9e45 0%, #4a8e35 100%);
-    z-index: 2;
-    border-radius: 50% 50% 0 0 / 20px;
-  }
-  .ground-mid {
-    position: absolute;
-    bottom: 20%;
-    width: 100%;
-    height: 18%;
-    background: linear-gradient(180deg, #4aad38 0%, #3a9228 100%);
-    z-index: 3;
-  }
-  .ground-near {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    height: 22%;
-    background: linear-gradient(180deg, #3d9e2c 0%, #2d7a1c 100%);
-    z-index: 4;
-  }
-
-  /* River */
-  .river {
-    position: absolute;
-    bottom: 22%;
-    left: 60%;
-    width: 18%;
-    height: 6%;
-    background: linear-gradient(135deg, #4fc3f7 0%, #0288d1 50%, #4fc3f7 100%);
-    border-radius: 40%;
-    z-index: 4;
-    animation: riverFlow 3s ease-in-out infinite;
-    opacity: 0.85;
-  }
-  @keyframes riverFlow {
-    0%, 100% { transform: scaleX(1); }
-    50% { transform: scaleX(1.03); }
-  }
-
-  /* Trees / Flowers */
-  .nature-items {
-    position: absolute;
-    bottom: 20%;
-    width: 100%;
-    z-index: 5;
-  }
-
-  /* ===== GERS (felt tents) ===== */
-  .ger-container {
-    position: absolute;
-    z-index: 6;
-    cursor: pointer;
-    transition: transform 0.2s;
-  }
-  .ger-container:hover { transform: scale(1.05); }
-
-  /* ===== ANIMALS ===== */
-  .animals-layer {
-    position: absolute;
-    bottom: 20%;
-    width: 100%;
-    z-index: 5;
-  }
-
-  /* ===== FENCE / HASHAA ===== */
-  .hashaa {
-    position: absolute;
-    z-index: 5;
-  }
-
-  /* ===== TITLE SCREEN ===== */
-  #screen-title {
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .title-content {
-    position: relative;
-    z-index: 10;
-    text-align: center;
-    padding: 20px;
-    max-width: 700px;
-    width: 90%;
-  }
-
-  .title-emblem {
-    font-size: 4rem;
-    margin-bottom: 10px;
-    animation: float 3s ease-in-out infinite;
-    filter: drop-shadow(0 0 20px #ffd700);
-  }
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-12px); }
-  }
-
-  .title-mn {
-    font-size: clamp(2rem, 5vw, 3.5rem);
-    font-weight: 900;
-    color: var(--gold);
-    text-shadow: 3px 3px 0 var(--dark-brown), 0 0 30px #ffd700;
-    letter-spacing: 3px;
-    margin-bottom: 5px;
-    line-height: 1.2;
-  }
-
-  .title-sub {
-    font-size: clamp(0.9rem, 2vw, 1.1rem);
-    color: #ffe99a;
-    margin-bottom: 20px;
-    font-style: italic;
-    text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
-  }
-
-  .title-desc-box {
-    background: rgba(0,0,0,0.65);
-    border: 2px solid var(--gold);
-    border-radius: 15px;
-    padding: 18px 22px;
-    margin-bottom: 22px;
-    backdrop-filter: blur(5px);
-  }
-
-  .title-desc-box h3 {
-    color: var(--gold);
-    font-size: 1rem;
-    margin-bottom: 10px;
-    text-align: center;
-  }
-
-  .desc-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    text-align: left;
-  }
-
-  .desc-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    color: #fff;
-    font-size: 0.82rem;
-    line-height: 1.4;
-  }
-  .desc-item span:first-child { font-size: 1.2rem; flex-shrink: 0; }
-
-  .age-badge {
-    display: inline-block;
-    background: linear-gradient(135deg, var(--dark-gold), var(--brown));
-    color: white;
-    padding: 4px 14px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    margin-bottom: 15px;
-    border: 1px solid var(--gold);
-  }
-
-  .btn-start {
-    display: block;
-    width: 220px;
-    margin: 0 auto;
-    padding: 14px 0;
-    background: linear-gradient(135deg, #f0c040, #c8960c, #f0c040);
-    background-size: 200% auto;
-    color: var(--dark-brown);
-    font-size: 1.2rem;
-    font-weight: 900;
-    border: 3px solid var(--dark-brown);
-    border-radius: 50px;
-    cursor: pointer;
-    text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
-    box-shadow: 0 5px 20px rgba(240,192,64,0.5), inset 0 1px 0 rgba(255,255,255,0.4);
-    transition: all 0.3s;
-    animation: btnGlow 2s ease-in-out infinite;
-    letter-spacing: 1px;
-  }
-  @keyframes btnGlow {
-    0%, 100% { box-shadow: 0 5px 20px rgba(240,192,64,0.5); transform: translateY(0); }
-    50% { box-shadow: 0 8px 35px rgba(240,192,64,0.8); transform: translateY(-3px); }
-  }
-  .btn-start:hover {
-    background-position: right center;
-    transform: translateY(-4px) scale(1.05);
-  }
-
-  /* ===== GAME SCREEN ===== */
-  #screen-game {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  /* Top HUD */
-  .hud-top {
-    position: relative;
-    z-index: 20;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 15px;
-    background: linear-gradient(90deg, rgba(0,0,0,0.85), rgba(80,30,0,0.85), rgba(0,0,0,0.85));
-    border-bottom: 2px solid var(--gold);
-    flex-wrap: wrap;
-    gap: 5px;
-  }
-
-  .hud-section {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .hud-label {
-    color: var(--gold);
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .hud-value {
-    color: #fff;
-    font-size: 0.9rem;
-    font-weight: 900;
-  }
-
-  .stage-indicator {
-    display: flex;
-    gap: 5px;
-    align-items: center;
-  }
-
-  .stage-dot {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    border: 2px solid var(--gold);
-    background: rgba(255,255,255,0.1);
-    transition: all 0.3s;
-    font-size: 0.55rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: transparent;
-  }
-  .stage-dot.done {
-    background: var(--gold);
-    color: var(--dark-brown);
-    font-size: 0.6rem;
-  }
-  .stage-dot.current {
-    background: #ff6b35;
-    border-color: #ff6b35;
-    box-shadow: 0 0 8px #ff6b35;
-    animation: pulse 1s infinite;
-    color: white;
-    font-size: 0.6rem;
-  }
-  @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-  }
-
-  /* Game area */
-  .game-area {
-    position: relative;
-    flex: 1;
-    overflow: hidden;
-    z-index: 5;
-  }
-
-  /* Bottom panel */
-  .bottom-panel {
-    position: relative;
-    z-index: 20;
-    background: linear-gradient(180deg, rgba(80,30,0,0.95), rgba(40,15,0,0.98));
-    border-top: 3px solid var(--gold);
-    padding: 10px 15px;
-  }
-
-  /* Shagai display */
-  .shagai-row {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 10px;
-  }
-
-  .shagai-slot {
-    width: 70px;
-    height: 70px;
-    background: rgba(0,0,0,0.4);
-    border: 2px dashed rgba(240,192,64,0.4);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2.5rem;
-    transition: all 0.5s;
-    position: relative;
-  }
-  .shagai-slot.rolled {
-    border: 2px solid var(--gold);
-    background: rgba(240,192,64,0.1);
-    animation: rollIn 0.4s ease-out;
-  }
-  @keyframes rollIn {
-    from { transform: rotate(-180deg) scale(0); opacity: 0; }
-    to { transform: rotate(0) scale(1); opacity: 1; }
-  }
-
-  .shagai-label {
-    position: absolute;
-    bottom: -18px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 0.62rem;
-    color: var(--gold);
-    white-space: nowrap;
-    font-weight: 700;
-  }
-
-  .result-display {
-    text-align: center;
-    margin-bottom: 10px;
-    min-height: 30px;
-  }
-
-  .result-text {
-    font-size: 1.1rem;
-    font-weight: 900;
-    color: var(--gold);
-    text-shadow: 0 0 10px var(--gold);
-  }
-
-  .altanShar-result {
-    font-size: 1.4rem;
-    color: #ffd700;
-    text-shadow: 0 0 20px #ffd700, 0 0 40px #ff8c00;
-    animation: shimmer 1s ease-in-out infinite alternate;
-  }
-  @keyframes shimmer {
-    from { text-shadow: 0 0 10px #ffd700; letter-spacing: 1px; }
-    to { text-shadow: 0 0 30px #ffd700, 0 0 60px #ff8c00; letter-spacing: 4px; }
-  }
-
-  /* Buttons row */
-  .btn-row {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  .btn-game {
-    padding: 9px 20px;
-    border: none;
-    border-radius: 25px;
-    font-size: 0.9rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-    letter-spacing: 0.5px;
-  }
-  .btn-game:hover { transform: translateY(-2px); }
-  .btn-game:active { transform: translateY(0); }
-
-  .btn-roll {
-    background: linear-gradient(135deg, #f0c040, #c8960c);
-    color: var(--dark-brown);
-    box-shadow: 0 4px 15px rgba(240,192,64,0.4);
-    min-width: 130px;
-  }
-
-  .btn-shop {
-    background: linear-gradient(135deg, #27ae60, #1e8449);
-    color: white;
-    box-shadow: 0 4px 15px rgba(39,174,96,0.4);
-  }
-
-  .btn-build {
-    background: linear-gradient(135deg, #e74c3c, #c0392b);
-    color: white;
-    box-shadow: 0 4px 15px rgba(231,76,60,0.4);
-  }
-
-  .btn-quiz {
-    background: linear-gradient(135deg, #9b59b6, #7d3c98);
-    color: white;
-    box-shadow: 0 4px 15px rgba(155,89,182,0.4);
-  }
-
-  /* Shagai counter */
-  .shagai-counter {
-    position: absolute;
-    right: 15px;
-    bottom: 55px;
-    background: rgba(0,0,0,0.7);
-    border: 1px solid var(--gold);
-    border-radius: 8px;
-    padding: 5px 10px;
-    color: var(--gold);
-    font-size: 0.8rem;
-    font-weight: 700;
-  }
-
-  /* ===== MODAL BASE ===== */
-  .modal-overlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.75);
-    z-index: 100;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 15px;
-  }
-  .modal-overlay.open { display: flex; }
-
-  .modal-box {
-    background: linear-gradient(180deg, #2c1810, #1a0e08);
-    border: 3px solid var(--gold);
-    border-radius: 20px;
-    padding: 25px;
-    max-width: 600px;
-    width: 100%;
-    max-height: 85vh;
-    overflow-y: auto;
-    position: relative;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.8), inset 0 1px 0 rgba(240,192,64,0.3);
-  }
-
-  .modal-title {
-    text-align: center;
-    color: var(--gold);
-    font-size: 1.4rem;
-    font-weight: 900;
-    margin-bottom: 20px;
-    text-shadow: 0 0 15px var(--gold);
-  }
-
-  .modal-close {
-    position: absolute;
-    top: 12px; right: 15px;
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.3);
-    color: white;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    font-size: 1rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-  }
-  .modal-close:hover { background: rgba(255,0,0,0.4); }
-
-  /* ===== SHOP MODAL ===== */
-  .shop-balance {
-    text-align: center;
-    color: #ffe99a;
-    font-size: 1rem;
-    margin-bottom: 15px;
-    padding: 8px;
-    background: rgba(240,192,64,0.1);
-    border-radius: 8px;
-    border: 1px solid rgba(240,192,64,0.3);
-  }
-
-  .shop-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    margin-bottom: 15px;
-  }
-
-  .shop-item {
-    background: rgba(255,255,255,0.05);
-    border: 2px solid rgba(240,192,64,0.3);
-    border-radius: 12px;
-    padding: 12px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-  }
-  .shop-item:hover {
-    border-color: var(--gold);
-    background: rgba(240,192,64,0.1);
-    transform: translateY(-2px);
-  }
-  .shop-item.owned {
-    border-color: #27ae60;
-    background: rgba(39,174,96,0.1);
-  }
-  .shop-item.owned::after {
-    content: '✓';
-    position: absolute;
-    top: 5px; right: 8px;
-    color: #27ae60;
-    font-weight: 900;
-    font-size: 1rem;
-  }
-
-  .shop-icon { font-size: 2.2rem; margin-bottom: 6px; }
-  .shop-name { color: #fff; font-size: 0.85rem; font-weight: 700; margin-bottom: 4px; }
-  .shop-desc { color: #aaa; font-size: 0.7rem; margin-bottom: 8px; }
-  .shop-price {
-    background: linear-gradient(135deg, var(--gold), var(--dark-gold));
-    color: var(--dark-brown);
-    padding: 4px 12px;
-    border-radius: 15px;
-    font-size: 0.78rem;
-    font-weight: 900;
-    display: inline-block;
-  }
-  .shop-price.free { background: linear-gradient(135deg, #27ae60, #1e8449); color: white; }
-
-  /* ===== GER BUILD MODAL ===== */
-  .build-stage-display {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-
-  .ger-preview {
-    width: 200px;
-    height: 150px;
-    margin: 0 auto 15px;
-    position: relative;
-  }
-
-  .build-steps {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-bottom: 15px;
-  }
-
-  .build-step {
-    background: rgba(255,255,255,0.05);
-    border: 2px solid rgba(240,192,64,0.2);
-    border-radius: 10px;
-    padding: 10px 5px;
-    text-align: center;
-    transition: all 0.3s;
-  }
-  .build-step.completed {
-    border-color: #27ae60;
-    background: rgba(39,174,96,0.1);
-  }
-  .build-step.in-progress {
-    border-color: var(--gold);
-    background: rgba(240,192,64,0.1);
-    animation: stepPulse 1s infinite;
-  }
-  @keyframes stepPulse {
-    0%, 100% { box-shadow: 0 0 5px rgba(240,192,64,0.3); }
-    50% { box-shadow: 0 0 15px rgba(240,192,64,0.7); }
-  }
-
-  .build-step-icon { font-size: 1.8rem; margin-bottom: 4px; }
-  .build-step-name { color: #fff; font-size: 0.72rem; font-weight: 700; }
-  .build-step-cost { color: var(--gold); font-size: 0.68rem; }
-  .build-step-status { font-size: 0.65rem; margin-top: 3px; }
-
-  /* Animated ger building SVG */
-  .ger-build-svg {
-    width: 100%;
-    max-width: 280px;
-    margin: 0 auto;
-    display: block;
-  }
-
-  /* ===== QUIZ MODAL ===== */
-  .quiz-question {
-    background: rgba(255,255,255,0.05);
-    border-radius: 12px;
-    padding: 15px;
-    margin-bottom: 15px;
-    color: #fff;
-    font-size: 1rem;
-    line-height: 1.5;
-    border-left: 4px solid var(--gold);
-  }
-
-  .quiz-options {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 15px;
-  }
-
-  .quiz-opt {
-    background: rgba(255,255,255,0.08);
-    border: 2px solid rgba(255,255,255,0.2);
-    border-radius: 10px;
-    padding: 12px;
-    color: white;
-    font-size: 0.88rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-align: center;
-  }
-  .quiz-opt:hover { border-color: var(--gold); background: rgba(240,192,64,0.1); }
-  .quiz-opt.correct { border-color: #27ae60; background: rgba(39,174,96,0.2); }
-  .quiz-opt.wrong { border-color: #e74c3c; background: rgba(231,76,60,0.2); }
-
-  .quiz-feedback {
-    text-align: center;
-    font-size: 0.95rem;
-    min-height: 30px;
-    padding: 8px;
-    border-radius: 8px;
-  }
-  .quiz-feedback.correct { background: rgba(39,174,96,0.2); color: #2ecc71; }
-  .quiz-feedback.wrong { background: rgba(231,76,60,0.2); color: #e74c3c; }
-
-  /* ===== STAGE COMPLETE MODAL ===== */
-  .stage-complete-modal {
-    text-align: center;
-  }
-  .stage-complete-icon {
-    font-size: 4rem;
-    margin-bottom: 10px;
-    animation: bounce 0.6s ease infinite alternate;
-  }
-  @keyframes bounce {
-    from { transform: translateY(0); }
-    to { transform: translateY(-15px); }
-  }
-  .stage-rewards {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    margin: 15px 0;
-    flex-wrap: wrap;
-  }
-  .reward-item {
-    background: rgba(240,192,64,0.1);
-    border: 1px solid var(--gold);
-    border-radius: 10px;
-    padding: 10px 15px;
-    color: white;
-    font-size: 0.9rem;
-    text-align: center;
-  }
-  .reward-item span { font-size: 1.5rem; display: block; }
-
-  /* ===== INFO TOOLTIP ===== */
-  .info-badge {
-    position: absolute;
-    top: -8px; right: -8px;
-    background: var(--red);
-    color: white;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    font-size: 0.65rem;
-    font-weight: 900;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid white;
-  }
-
-  /* ===== GER BUILD ANIMATION ===== */
-  .ger-build-container {
-    width: 200px;
-    height: 160px;
-    margin: 0 auto;
-    position: relative;
-    margin-bottom: 15px;
-  }
-
-  /* ===== TOKHIRUULGA (settings small) ===== */
-  .hud-btn {
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(240,192,64,0.4);
-    color: var(--gold);
-    padding: 4px 10px;
-    border-radius: 15px;
-    font-size: 0.78rem;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .hud-btn:hover { background: rgba(240,192,64,0.2); }
-
-  /* ===== SCROLLBAR ===== */
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
-  ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 3px; }
-
-  /* ===== NOTIFICATION ===== */
-  .notification {
-    position: fixed;
-    top: 70px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: linear-gradient(135deg, #2c1810, #1a0e08);
-    border: 2px solid var(--gold);
-    border-radius: 25px;
-    padding: 10px 25px;
-    color: white;
-    font-size: 0.9rem;
-    z-index: 200;
-    opacity: 0;
-    transition: opacity 0.3s;
-    text-align: center;
-    pointer-events: none;
-    white-space: nowrap;
-  }
-  .notification.show { opacity: 1; }
-
-  /* ===== PROGRESS BAR ===== */
-  .progress-bar-wrap {
-    background: rgba(0,0,0,0.4);
-    border-radius: 10px;
-    height: 8px;
-    margin-top: 5px;
-    border: 1px solid rgba(240,192,64,0.3);
-    overflow: hidden;
-  }
-  .progress-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--gold), #ff8c00);
-    border-radius: 10px;
-    transition: width 0.5s ease;
-  }
-
-  /* ===== RESPONSIVE ===== */
-  @media (max-width: 480px) {
-    .shagai-slot { width: 55px; height: 55px; font-size: 2rem; }
-    .shop-grid { grid-template-columns: 1fr; }
-    .quiz-options { grid-template-columns: 1fr; }
-    .build-steps { grid-template-columns: repeat(2, 1fr); }
-    .title-mn { font-size: 1.8rem; }
-    .desc-grid { grid-template-columns: 1fr; }
-  }
-
-  /* ===== FLOATING ELEMENTS ===== */
-  .floating-bird {
-    position: absolute;
-    font-size: 1.2rem;
-    animation: birdFly 12s linear infinite;
-    z-index: 4;
-    opacity: 0.8;
-  }
-  @keyframes birdFly {
-    0% { left: -5%; top: 15%; transform: scaleX(1); }
-    45% { top: 10%; }
-    50% { left: 105%; top: 12%; transform: scaleX(1); }
-    50.1% { left: 105%; transform: scaleX(-1); }
-    100% { left: -5%; top: 15%; transform: scaleX(-1); }
-  }
-
-  .floating-bird-2 {
-    animation-delay: -6s;
-    top: 20% !important;
-    font-size: 1rem;
-  }
-
-  /* Game info overlay on landscape */
-  .landscape-info {
-    position: absolute;
-    z-index: 8;
-    pointer-events: none;
-  }
-
-  /* Small ger icons in landscape */
-  .landscape-ger {
-    position: absolute;
-    z-index: 6;
-    pointer-events: none;
-  }
-
-  /* Wind animation */
-  .grass-sway {
-    position: absolute;
-    bottom: 20%;
-    left: 0;
-    width: 100%;
-    height: 40px;
-    z-index: 5;
-    overflow: hidden;
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шагай Аялал - Heritage Game</title>
+    <style>
+        :root {
+            --mongol-blue: #003366;
+            --gold: #FFD700;
+            --white: #f4f4f4;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #game-container {
+            width: 400px;
+            background: white;
+            border: 5px solid var(--mongol-blue);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .stats-bar {
+            display: flex;
+            justify-content: space-around;
+            background: var(--mongol-blue);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .shagai-board {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .shagai-slot {
+            height: 80px;
+            background: #eee;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            transition: all 0.3s;
+        }
+        .rolled {
+            border-style: solid;
+            border-color: var(--gold);
+            background: #fff;
+            transform: scale(1.05);
+        }
+        button {
+            background: var(--mongol-blue);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:hover { background: #0055aa; }
+        button:disabled { background: #ccc; }
+        
+        #result-text {
+            height: 30px;
+            font-weight: bold;
+            color: #d32f2f;
+            margin-top: 10px;
+        }
+        .altanShar-result { color: #ff9800 !important; font-size: 20px; text-shadow: 1px 1px #000; }
+        
+        .build-section {
+            margin-top: 20px;
+            border-top: 1px solid #ddd;
+            padding-top: 15px;
+        }
+    </style>
 </head>
 <body>
 
-<!-- ===== NOTIFICATION ===== -->
-<div class="notification" id="notification"></div>
-
-<!-- ================================================================
-     SCREEN 1: TITLE
-================================================================ -->
-<div class="screen active" id="screen-title">
-  <!-- Background -->
-  <div class="bg-landscape">
-    <div class="sky"></div>
-    <div class="stars-layer" id="stars"></div>
-    <div class="sun"></div>
-    <div class="cloud cloud-1"></div>
-    <div class="cloud cloud-2"></div>
-    <div class="cloud cloud-3"></div>
-
-    <!-- Mountains SVG -->
-    <div class="mountains-bg">
-      <svg viewBox="0 0 1200 300" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Far mountains -->
-        <polygon points="0,300 100,80 200,160 320,40 440,140 560,60 680,150 800,50 920,130 1040,70 1160,120 1200,100 1200,300" fill="#4a7a6d" opacity="0.6"/>
-        <!-- Mid mountains -->
-        <polygon points="0,300 80,140 180,200 300,100 420,180 520,90 640,170 760,85 880,165 1000,95 1100,150 1200,110 1200,300" fill="#5a8a5a" opacity="0.8"/>
-        <!-- Snow caps -->
-        <polygon points="320,40 340,80 300,80" fill="white" opacity="0.8"/>
-        <polygon points="800,50 820,90 780,90" fill="white" opacity="0.8"/>
-        <polygon points="560,60 575,95 545,95" fill="white" opacity="0.7"/>
-        <!-- Near hills -->
-        <polygon points="0,300 0,200 200,160 400,180 600,150 800,170 1000,155 1200,165 1200,300" fill="#5da84e" opacity="0.9"/>
-      </svg>
+<div id="game-container">
+    <h2>🐎 Шагай Аялал</h2>
+    
+    <div class="stats-bar">
+        <div>💰 Шагай: <span id="shagai-balance">0</span></div>
+        <div>🎲 Эрх: <span id="rolls-display">5</span></div>
     </div>
 
-    <div class="ground-far"></div>
-    <div class="ground-mid"></div>
-    <div class="ground-near"></div>
-    <div class="river"></div>
-
-    <!-- Title screen gers -->
-    <div style="position:absolute;bottom:18%;left:5%;z-index:7;">
-      <svg width="90" height="70" viewBox="0 0 90 70">
-        <!-- Ger body -->
-        <ellipse cx="45" cy="55" rx="42" ry="12" fill="#c8a96e"/>
-        <rect x="8" y="40" width="74" height="18" fill="#d4b47a" rx="2"/>
-        <!-- Ger roof -->
-        <polygon points="45,5 5,42 85,42" fill="#c8860a"/>
-        <polygon points="45,5 15,42 75,42" fill="#d4960c"/>
-        <!-- Crown (toono) -->
-        <ellipse cx="45" cy="8" rx="10" ry="4" fill="#8B4513"/>
-        <!-- Door -->
-        <rect x="35" y="45" width="20" height="15" fill="#8B4513" rx="2"/>
-        <rect x="36" y="46" width="8" height="13" fill="#6b3410" rx="1"/>
-        <rect x="46" y="46" width="8" height="13" fill="#6b3410" rx="1"/>
-        <!-- Decorations -->
-        <line x1="20" y1="42" x2="20" y2="58" stroke="#8B4513" stroke-width="1.5"/>
-        <line x1="70" y1="42" x2="70" y2="58" stroke="#8B4513" stroke-width="1.5"/>
-        <!-- Smoke -->
-        <circle cx="45" cy="-2" r="4" fill="rgba(200,200,200,0.5)">
-          <animate attributeName="cy" values="-2;-20;-35" dur="3s" repeatCount="indefinite"/>
-          <animate attributeName="opacity" values="0.5;0.3;0" dur="3s" repeatCount="indefinite"/>
-          <animate attributeName="r" values="4;8;12" dur="3s" repeatCount="indefinite"/>
-        </circle>
-      </svg>
+    <div class="shagai-board">
+        <div class="shagai-slot" id="s1">?</div>
+        <div class="shagai-slot" id="s2">?</div>
+        <div class="shagai-slot" id="s3">?</div>
+        <div class="shagai-slot" id="s4">?</div>
     </div>
 
-    <!-- Animals in title screen -->
-    <div style="position:absolute;bottom:19%;left:18%;z-index:7;font-size:1.6rem;animation:animalWalk 8s ease-in-out infinite;">🐎</div>
-    <div style="position:absolute;bottom:19%;left:25%;z-index:7;font-size:1.2rem;animation:animalWalk 6s ease-in-out infinite 1s;">🐑</div>
-    <div style="position:absolute;bottom:19%;right:20%;z-index:7;font-size:1.4rem;animation:animalWalk 7s ease-in-out infinite 2s;">🐪</div>
-    <div style="position:absolute;bottom:19%;right:28%;z-index:7;font-size:1.3rem;animation:animalWalk 9s ease-in-out infinite 0.5s;">🐄</div>
-    <div style="position:absolute;bottom:19%;right:10%;z-index:7;font-size:1.1rem;animation:animalWalk 5s ease-in-out infinite 3s;">🐐</div>
+    <div id="result-text">Тоглоомоо эхэлнэ үү!</div>
+    <br>
+    <button onclick="rollShagai()" id="roll-btn">Шагай орхих</button>
 
-    <!-- Fence -->
-    <svg style="position:absolute;bottom:18%;right:5%;z-index:6;" width="160" height="50" viewBox="0 0 160 50">
-      <rect x="5" y="10" width="5" height="40" fill="#8B4513" rx="1"/>
-      <rect x="30" y="10" width="5" height="40" fill="#8B4513" rx="1"/>
-      <rect x="55" y="10" width="5" height="40" fill="#8B4513" rx="1"/>
-      <rect x="80" y="10" width="5" height="40" fill="#8B4513" rx="1"/>
-      <rect x="105" y="10" width="5" height="40" fill="#8B4513" rx="1"/>
-      <rect x="130" y="10" width="5" height="40" fill="#8B4513" rx="1"/>
-      <rect x="150" y="10" width="5" height="40" fill="#8B4513" rx="1"/>
-      <rect x="5" y="18" width="150" height="6" fill="#a0522d" rx="2"/>
-      <rect x="5" y="34" width="150" height="6" fill="#a0522d" rx="2"/>
-    </svg>
-
-    <div class="floating-bird" style="top:12%;">🦅</div>
-    <div class="floating-bird floating-bird-2">🦅</div>
-  </div>
-
-  <!-- Title Content -->
-  <div class="title-content">
-    <div class="title-emblem">🎯</div>
-    <div class="title-mn">⚡ ШАГАЙ АЯЛАЛ ⚡</div>
-    <div class="title-sub">Монгол уламжлалт тоглоомын дэлхий</div>
-
-    <div class="age-badge">📚 13-15 насны хүүхдүүдэд зориулсан</div>
-
-    <div class="title-desc-box">
-      <h3>🏠 Тоглоомын тухай</h3>
-      <div class="desc-grid">
-        <div class="desc-item">
-          <span>🎲</span>
-          <span>4 шагай орхиж Морь, Хонь, Үхэр, Тэмээ талуудыг таа</span>
-        </div>
-        <div class="desc-item">
-          <span>🏘️</span>
-          <span>10 үе дамжин цуглуулсан шагайгаар монгол гэр бариарай</span>
-        </div>
-        <div class="desc-item">
-          <span>🛒</span>
-          <span>Дэлгүүрээс гэрийн эд зүйл, 5 хошуу мал худалдаж ав</span>
-        </div>
-        <div class="desc-item">
-          <span>📖</span>
-          <span>Монгол ёс заншил, уламжлалын тухай асуулт хариулаарай</span>
-        </div>
-        <div class="desc-item">
-          <span>⭐</span>
-          <span>4 Морь = "Алтан шар" — хамгийн их шагай цуглуулна</span>
-        </div>
-        <div class="desc-item">
-          <span>🏆</span>
-          <span>Бүх үе дайран гэрээ дуусгавал тоглоомыг ялна</span>
-        </div>
-      </div>
+    <div class="build-section">
+        <h3>🏠 Гэр барих</h3>
+        <button onclick="buildGer('hana')" style="font-size: 12px;">Хана (50)</button>
+        <button onclick="buildGer('uni')" style="font-size: 12px;">Унь (80)</button>
+        <button onclick="buildGer('toono')" style="font-size: 12px;">Тооно (150)</button>
     </div>
-
-    <button class="btn-start" onclick="startGame()">
-      🏹 Аялал эхлэх
-    </button>
-  </div>
 </div>
-
-<!-- ================================================================
-     SCREEN 2: GAME
-================================================================ -->
-<div class="screen" id="screen-game">
-  <!-- Background (same landscape) -->
-  <div class="bg-landscape" id="game-bg">
-    <div class="sky"></div>
-    <div class="sun" style="top:8%;right:10%;width:50px;height:50px;"></div>
-    <div class="cloud cloud-1"></div>
-    <div class="cloud cloud-2"></div>
-
-    <div class="mountains-bg">
-      <svg viewBox="0 0 1200 300" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-        <polygon points="0,300 100,80 200,160 320,40 440,140 560,60 680,150 800,50 920,130 1040,70 1160,120 1200,100 1200,300" fill="#4a7a6d" opacity="0.6"/>
-        <polygon points="0,300 80,140 180,200 300,100 420,180 520,90 640,170 760,85 880,165 1000,95 1100,150 1200,110 1200,300" fill="#5a8a5a" opacity="0.8"/>
-        <polygon points="320,40 340,80 300,80" fill="white" opacity="0.8"/>
-        <polygon points="800,50 820,90 780,90" fill="white" opacity="0.8"/>
-        <polygon points="560,60 575,95 545,95" fill="white" opacity="0.7"/>
-        <polygon points="0,300 0,200 200,160 400,180 600,150 800,170 1000,155 1200,165 1200,300" fill="#5da84e" opacity="0.9"/>
-      </svg>
-    </div>
-
-    <div class="ground-far"></div>
-    <div class="ground-mid"></div>
-    <div class="ground-near"></div>
-    <div class="river" style="left:65%;bottom:23%;width:14%;height:5%;"></div>
-
-    <!-- Landscape Gers (background, 2-3 gers) -->
-    <div style="position:absolute;bottom:26%;left:8%;z-index:6;" id="landscape-ger-1">
-      <svg width="65" height="50" viewBox="0 0 90 70" opacity="0.9">
-        <ellipse cx="45" cy="55" rx="42" ry="12" fill="#c8a96e"/>
-        <rect x="8" y="40" width="74" height="18" fill="#d4b47a" rx="2"/>
-        <polygon points="45,5 5,42 85,42" fill="#c8860a"/>
-        <polygon points="45,5 15,42 75,42" fill="#d4960c"/>
-        <ellipse cx="45" cy="8" rx="10" ry="4" fill="#8B4513"/>
-        <rect x="35" y="45" width="20" height="15" fill="#8B4513" rx="2"/>
-        <rect x="36" y="46" width="8" height="13" fill="#6b3410" rx="1"/>
-        <rect x="46" y="46" width="8" height="13" fill="#6b3410" rx="1"/>
-        <circle cx="45" cy="-2" r="3" fill="rgba(200,200,200,0.5)">
-          <animate attributeName="cy" values="-2;-18;-30" dur="3s" repeatCount="indefinite"/>
-          <animate attributeName="opacity" values="0.5;0.3;0" dur="3s" repeatCount="indefinite"/>
-          <animate attributeName="r" values="3;6;10" dur="3s" repeatCount="indefinite"/>
-        </circle>
-      </svg>
-    </div>
-    <div style="position:absolute;bottom:27%;left:18%;z-index:6;" id="landscape-ger-2">
-      <svg width="55" height="42" viewBox="0 0 90 70" opacity="0.85">
-        <ellipse cx="45" cy="55" rx="42" ry="12" fill="#d4b47a"/>
-        <rect x="8" y="40" width="74" height="18" fill="#c8a96e" rx="2"/>
-        <polygon points="45,5 5,42 85,42" fill="#b87020"/>
-        <ellipse cx="45" cy="8" rx="10" ry="4" fill="#8B4513"/>
-        <rect x="35" y="45" width="20" height="15" fill="#8B4513" rx="2"/>
-      </svg>
-    </div>
-    <div style="position:absolute;bottom:26%;right:12%;z-index:6;" id="landscape-ger-3">
-      <svg width="60" height="46" viewBox="0 0 90 70" opacity="0.88">
-        <ellipse cx="45" cy="55" rx="42" ry="12" fill="#c8a96e"/>
-        <rect x="8" y="40" width="74" height="18" fill="#d4b47a" rx="2"/>
-        <polygon points="45,5 5,42 85,42" fill="#c8760a"/>
-        <ellipse cx="45" cy="8" rx="10" ry="4" fill="#8B4513"/>
-        <rect x="35" y="45" width="20" height="15" fill="#8B4513" rx="2"/>
-        <circle cx="45" cy="-2" r="3" fill="rgba(200,200,200,0.5)">
-          <animate attributeName="cy" values="-2;-18;-30" dur="4s" repeatCount="indefinite"/>
-          <animate attributeName="opacity" values="0.5;0.3;0" dur="4s" repeatCount="indefinite"/>
-          <animate attributeName="r" values="3;6;10" dur="4s" repeatCount="indefinite"/>
-        </circle>
-      </svg>
-    </div>
-
-    <!-- Hashaa (fence) for animals -->
-    <svg style="position:absolute;bottom:19%;right:8%;z-index:5;" width="200" height="60" viewBox="0 0 200 60">
-      <!-- Posts -->
-      <rect x="5" y="8" width="6" height="52" fill="#7a4010" rx="1"/>
-      <rect x="45" y="8" width="6" height="52" fill="#7a4010" rx="1"/>
-      <rect x="85" y="8" width="6" height="52" fill="#7a4010" rx="1"/>
-      <rect x="125" y="8" width="6" height="52" fill="#7a4010" rx="1"/>
-      <rect x="165" y="8" width="6" height="52" fill="#7a4010" rx="1"/>
-      <rect x="190" y="8" width="6" height="52" fill="#7a4010" rx="1"/>
-      <!-- Horizontal bars -->
-      <rect x="5" y="16" width="191" height="7" fill="#8B4513" rx="2"/>
-      <rect x="5" y="36" width="191" height="7" fill="#8B4513" rx="2"/>
-      <rect x="5" y="52" width="191" height="7" fill="#8B4513" rx="2"/>
-      <!-- Gate -->
-      <rect x="85" y="8" width="46" height="50" fill="rgba(139,69,19,0.1)" rx="2"/>
-    </svg>
-
-    <!-- 5 Хошуу мал (Five livestock) -->
-    <div style="position:absolute;bottom:20%;right:10%;z-index:6;display:flex;gap:8px;" id="animals-display">
-      <div style="font-size:1.5rem;animation:graze 3s ease-in-out infinite;">🐎</div>
-      <div style="font-size:1.3rem;animation:graze 4s ease-in-out infinite 0.5s;">🐑</div>
-      <div style="font-size:1.3rem;animation:graze 3.5s ease-in-out infinite 1s;">🐄</div>
-      <div style="font-size:1.4rem;animation:graze 5s ease-in-out infinite 1.5s;">🐪</div>
-      <div style="font-size:1.2rem;animation:graze 4s ease-in-out infinite 2s;">🐐</div>
-    </div>
-
-    <!-- Extra animals grazing outside fence -->
-    <div style="position:absolute;bottom:21%;left:35%;z-index:5;font-size:1.1rem;animation:graze 4s infinite 0.3s;">🐑</div>
-    <div style="position:absolute;bottom:21%;left:42%;z-index:5;font-size:1.1rem;animation:graze 5s infinite 1.2s;">🐑</div>
-    <div style="position:absolute;bottom:22%;left:50%;z-index:5;font-size:1.2rem;animation:graze 3.5s infinite 0.8s;">🐎</div>
-
-    <!-- Birds -->
-    <div class="floating-bird" style="top:8%;font-size:1rem;">🦅</div>
-    <div class="floating-bird floating-bird-2" style="top:14%;font-size:0.9rem;">🦅</div>
-
-    <!-- Trees / nature -->
-    <div style="position:absolute;bottom:19%;left:60%;z-index:5;font-size:1.8rem;">🌲</div>
-    <div style="position:absolute;bottom:19%;left:63%;z-index:5;font-size:1.4rem;">🌲</div>
-    <div style="position:absolute;bottom:20%;left:2%;z-index:5;font-size:1.5rem;">🌿</div>
-  </div>
-
-  <!-- HUD Top -->
-  <div class="hud-top">
-    <div class="hud-section">
-      <span class="hud-label">🏹 Үе:</span>
-      <span class="hud-value" id="hud-stage">1/10</span>
-    </div>
-
-    <div class="hud-section">
-      <div class="stage-indicator" id="stage-dots"></div>
-    </div>
-
-    <div class="hud-section">
-      <span class="hud-label">🦴 Шагай:</span>
-      <span class="hud-value" id="hud-shagai">0</span>
-    </div>
-
-    <div class="hud-section">
-      <span class="hud-label">🏠 Гэр:</span>
-      <span class="hud-value" id="hud-ger-progress">0%</span>
-    </div>
-
-    <div class="hud-section">
-      <button class="hud-btn" onclick="showModal('quiz-modal')">❓ Асуулт</button>
-      <button class="hud-btn" onclick="goHome()">🏠 Гарах</button>
-    </div>
-  </div>
-
-  <!-- Game Area (landscape visible) -->
-  <div class="game-area"></div>
-
-  <!-- Bottom Panel -->
-  <div class="bottom-panel">
-    <!-- Shagai slots -->
-    <div class="shagai-row">
-      <div class="shagai-slot" id="slot-0">
-        <span class="shagai-label">1-р шагай</span>
-      </div>
-      <div class="shagai-slot" id="slot-1">
-        <span class="shagai-label">2-р шагай</span>
-      </div>
-      <div class="shagai-slot" id="slot-2">
-        <span class="shagai-label">3-р шагай</span>
-      </div>
-      <div class="shagai-slot" id="slot-3">
-        <span class="shagai-label">4-р шагай</span>
-      </div>
-    </div>
-
-    <!-- Result -->
-    <div class="result-display">
-      <div class="result-text" id="result-text">Шагайгаа орхиорой!</div>
-    </div>
-
-    <!-- Buttons -->
-    <div class="btn-row">
-      <button class="btn-game btn-roll" id="btn-roll" onclick="rollShagai()">
-        🎲 Шагай орхих
-      </button>
-      <button class="btn-game btn-shop" onclick="showModal('shop-modal')">
-        🛒 Дэлгүүр
-      </button>
-      <button class="btn-game btn-build" onclick="showModal('build-modal')">
-        🏠 Гэр барих
-      </button>
-      <button class="btn-game btn-quiz" onclick="showModal('quiz-modal')">
-        ❓ Мэдлэг
-      </button>
-    </div>
-
-    <!-- Shagai count bottom right -->
-    <div class="shagai-counter">
-      🦴 <span id="shagai-count-bottom">0</span> шагай
-    </div>
-  </div>
-</div>
-
-<!-- ================================================================
-     MODAL: SHOP
-================================================================ -->
-<div class="modal-overlay" id="shop-modal">
-  <div class="modal-box">
-    <button class="modal-close" onclick="closeModal('shop-modal')">✕</button>
-    <div class="modal-title">🛒 Монгол Дэлгүүр</div>
-
-    <div class="shop-balance">
-      💰 Таны шагай: <strong id="shop-shagai-count">0</strong> ширхэг
-    </div>
-
-    <div class="shop-grid" id="shop-grid">
-      <!-- Filled by JS -->
-    </div>
-
-    <div style="text-align:center;color:#aaa;font-size:0.78rem;">
-      💡 Эд зүйлсийг худалдаж аваад гэрийн барилгын явц ахина
-    </div>
-  </div>
-</div>
-
-<!-- ================================================================
-     MODAL: BUILD
-================================================================ -->
-<div class="modal-overlay" id="build-modal">
-  <div class="modal-box">
-    <button class="modal-close" onclick="closeModal('build-modal')">✕</button>
-    <div class="modal-title">🏠 Монгол Гэр Барих</div>
-
-    <!-- Animated ger building SVG -->
-    <div style="text-align:center;margin-bottom:15px;">
-      <svg id="ger-build-svg" width="260" height="180" viewBox="0 0 260 180" style="filter:drop-shadow(0 5px 15px rgba(0,0,0,0.5));">
-        <!-- Ground -->
-        <ellipse cx="130" cy="168" rx="120" ry="12" fill="#3a7d2c" opacity="0.6"/>
-
-        <!-- STAGE 0: Empty (just ground marker) -->
-        <g id="gs-base">
-          <ellipse cx="130" cy="160" rx="90" ry="8" fill="#8B7355" opacity="0" id="base-floor"/>
-        </g>
-
-        <!-- STAGE 1: Toono (crown) -->
-        <g id="gs-toono" opacity="0">
-          <ellipse cx="130" cy="80" rx="22" ry="8" fill="#8B4513" stroke="#c8860a" stroke-width="2"/>
-          <ellipse cx="130" cy="76" rx="18" ry="6" fill="#a0522d"/>
-          <!-- Toono lattice -->
-          <line x1="108" y1="78" x2="152" y2="78" stroke="#c8860a" stroke-width="1.5"/>
-          <line x1="130" y1="68" x2="130" y2="86" stroke="#c8860a" stroke-width="1.5"/>
-          <line x1="113" y1="71" x2="147" y2="83" stroke="#c8860a" stroke-width="1"/>
-          <line x1="147" y1="71" x2="113" y2="83" stroke="#c8860a" stroke-width="1"/>
-        </g>
-
-        <!-- STAGE 2: Uni (rafters) -->
-        <g id="gs-uni" opacity="0">
-          <line x1="130" y1="78" x2="40" y2="140" stroke="#c8960c" stroke-width="2.5"/>
-          <line x1="130" y1="78" x2="220" y2="140" stroke="#c8960c" stroke-width="2.5"/>
-          <line x1="130" y1="78" x2="70" y2="138" stroke="#c8960c" stroke-width="2"/>
-          <line x1="130" y1="78" x2="190" y2="138" stroke="#c8960c" stroke-width="2"/>
-          <line x1="130" y1="78" x2="95" y2="135" stroke="#c8960c" stroke-width="2"/>
-          <line x1="130" y1="78" x2="165" y2="135" stroke="#c8960c" stroke-width="2"/>
-          <line x1="130" y1="78" x2="115" y2="133" stroke="#c8960c" stroke-width="1.5"/>
-          <line x1="130" y1="78" x2="145" y2="133" stroke="#c8960c" stroke-width="1.5"/>
-        </g>
-
-        <!-- STAGE 3: Khana (lattice walls) -->
-        <g id="gs-khana" opacity="0">
-          <!-- Wall trapezoid -->
-          <path d="M40,140 L220,140 L215,162 L45,162 Z" fill="#d4b47a" stroke="#8B4513" stroke-width="1.5"/>
-          <!-- Lattice pattern -->
-          <line x1="60" y1="140" x2="55" y2="162" stroke="#8B4513" stroke-width="1"/>
-          <line x1="80" y1="140" x2="75" y2="162" stroke="#8B4513" stroke-width="1"/>
-          <line x1="100" y1="140" x2="97" y2="162" stroke="#8B4513" stroke-width="1"/>
-          <line x1="120" y1="140" x2="118" y2="162" stroke="#8B4513" stroke-width="1"/>
-          <line x1="140" y1="140" x2="142" y2="162" stroke="#8B4513" stroke-width="1"/>
-          <line x1="160" y1="140" x2="163" y2="162" stroke="#8B4513" stroke-width="1"/>
-          <line x1="180" y1="140" x2="183" y2="162" stroke="#8B4513" stroke-width="1"/>
-          <line x1="200" y1="140" x2="203" y2="162" stroke="#8B4513" stroke-width="1"/>
-          <!-- Horizontal bands -->
-          <line x1="40" y1="147" x2="220" y2="147" stroke="#8B4513" stroke-width="1"/>
-          <line x1="41" y1="155" x2="219" y2="155" stroke="#8B4513" stroke-width="1"/>
-        </g>
-
-        <!-- STAGE 4: Esgii (felt cover) -->
-        <g id="gs-esgii" opacity="0">
-          <!-- Roof felt -->
-          <path d="M130,72 L35,140 L225,140 Z" fill="#c8860a" opacity="0.92"/>
-          <!-- Lighter top -->
-          <path d="M130,72 L70,120 L190,120 Z" fill="#e8a020" opacity="0.7"/>
-          <!-- Felt texture lines -->
-          <line x1="130" y1="72" x2="45" y2="140" stroke="#a0680a" stroke-width="1" opacity="0.5"/>
-          <line x1="130" y1="72" x2="215" y2="140" stroke="#a0680a" stroke-width="1" opacity="0.5"/>
-          <line x1="130" y1="72" x2="80" y2="140" stroke="#a0680a" stroke-width="1" opacity="0.4"/>
-          <line x1="130" y1="72" x2="180" y2="140" stroke="#a0680a" stroke-width="1" opacity="0.4"/>
-          <line x1="130" y1="72" x2="105" y2="140" stroke="#a0680a" stroke-width="1" opacity="0.3"/>
-          <line x1="130" y1="72" x2="155" y2="140" stroke="#a0680a" stroke-width="1" opacity="0.3"/>
-        </g>
-
-        <!-- STAGE 5: Khaalga (door) -->
-        <g id="gs-khaalga" opacity="0">
-          <rect x="108" y="138" width="44" height="28" fill="#6b3410" rx="3"/>
-          <rect x="109" y="139" width="20" height="26" fill="#5a2a0a" rx="2"/>
-          <rect x="131" y="139" width="20" height="26" fill="#5a2a0a" rx="2"/>
-          <rect x="109" y="139" width="20" height="26" fill="none" stroke="#8B4513" stroke-width="1" rx="2"/>
-          <rect x="131" y="139" width="20" height="26" fill="none" stroke="#8B4513" stroke-width="1" rx="2"/>
-          <!-- Door knob -->
-          <circle cx="131" cy="152" r="2.5" fill="#ffd700"/>
-          <!-- Door decoration -->
-          <path d="M112,143 Q119,148 112,153" stroke="#c8860a" stroke-width="1" fill="none"/>
-          <path d="M148,143 Q141,148 148,153" stroke="#c8860a" stroke-width="1" fill="none"/>
-        </g>
-
-        <!-- STAGE 6: Decorations (ornaments) -->
-        <g id="gs-chimeglel" opacity="0">
-          <!-- Hadag (blue scarf) on top -->
-          <path d="M118,72 Q130,65 142,72" fill="none" stroke="#0066cc" stroke-width="3"/>
-          <!-- Ornament band on wall -->
-          <rect x="40" y="140" width="180" height="5" fill="#c8860a" rx="1"/>
-          <!-- Decorative motifs -->
-          <text x="52" y="150" fill="#ffd700" font-size="8">✦</text>
-          <text x="80" y="150" fill="#ffd700" font-size="8">✦</text>
-          <text x="108" y="150" fill="#ffd700" font-size="8">✦</text>
-          <text x="136" y="150" fill="#ffd700" font-size="8">✦</text>
-          <text x="164" y="150" fill="#ffd700" font-size="8">✦</text>
-          <text x="192" y="150" fill="#ffd700" font-size="8">✦</text>
-          <!-- Windows -->
-          <rect x="50" y="143" width="18" height="14" fill="#87ceeb" rx="2" opacity="0.7"/>
-          <rect x="192" y="143" width="18" height="14" fill="#87ceeb" rx="2" opacity="0.7"/>
-          <!-- Smoke from toono -->
-          <circle cx="130" cy="60" r="5" fill="rgba(200,200,200,0.4)">
-            <animate attributeName="cy" values="60;40;20" dur="3s" repeatCount="indefinite"/>
-            <animate attributeName="opacity" values="0.4;0.2;0" dur="3s" repeatCount="indefinite"/>
-            <animate attributeName="r" values="5;9;14" dur="3s" repeatCount="indefinite"/>
-          </circle>
-        </g>
-      </svg>
-    </div>
-
-    <div id="build-progress-text" style="text-align:center;color:#ffe99a;font-size:0.88rem;margin-bottom:12px;">
-      Гэр барих явц: <strong id="build-pct">0%</strong>
-    </div>
-
-    <!-- Progress bar -->
-    <div class="progress-bar-wrap" style="margin-bottom:15px;">
-      <div class="progress-bar-fill" id="build-progress-bar" style="width:0%"></div>
-    </div>
-
-    <!-- Build steps -->
-    <div class="build-steps" id="build-steps">
-      <!-- Filled by JS -->
-    </div>
-
-    <div style="text-align:center;color:#aaa;font-size:0.75rem;margin-top:8px;">
-      💡 Дэлгүүрээс эд зүйл худалдан авбал барилгын явц ахина
-    </div>
-  </div>
-</div>
-
-<!-- ================================================================
-     MODAL: QUIZ
-================================================================ -->
-<div class="modal-overlay" id="quiz-modal">
-  <div class="modal-box" style="max-width:520px;">
-    <button class="modal-close" onclick="closeModal('quiz-modal')">✕</button>
-    <div class="modal-title">📚 Монгол Мэдлэг</div>
-
-    <div style="text-align:center;color:#ffe99a;font-size:0.85rem;margin-bottom:12px;">
-      Зөв хариулбал шагай авна! 🦴
-    </div>
-
-    <div class="quiz-question" id="quiz-question-text">
-      <!-- Filled by JS -->
-    </div>
-
-    <div class="quiz-options" id="quiz-options">
-      <!-- Filled by JS -->
-    </div>
-
-    <div class="quiz-feedback" id="quiz-feedback"></div>
-
-    <div style="text-align:center;margin-top:12px;">
-      <button class="btn-game btn-quiz" onclick="nextQuizQuestion()" id="btn-next-quiz" style="display:none;">
-        Дараагийн асуулт →
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- ================================================================
-     MODAL: STAGE COMPLETE
-================================================================ -->
-<div class="modal-overlay" id="stage-modal">
-  <div class="modal-box stage-complete-modal" style="max-width:420px;">
-    <div class="stage-complete-icon" id="stage-icon">🎉</div>
-    <div class="modal-title" id="stage-modal-title">Үе дууслаа!</div>
-    <div style="color:#ffe99a;font-size:0.9rem;margin-bottom:15px;" id="stage-modal-desc">
-      Та энэ үеийг амжилттай дааж гарлаа!
-    </div>
-    <div class="stage-rewards" id="stage-rewards">
-      <!-- Filled by JS -->
-    </div>
-    <button class="btn-game btn-roll" style="margin:10px auto;display:block;" onclick="nextStage()">
-      Дараагийн үе →
-    </button>
-  </div>
-</div>
-
-<!-- ================================================================
-     MODAL: GAME OVER / WIN
-================================================================ -->
-<div class="modal-overlay" id="endgame-modal">
-  <div class="modal-box stage-complete-modal" style="max-width:450px;">
-    <div class="stage-complete-icon" id="end-icon">🏆</div>
-    <div class="modal-title" id="end-title">Тоглоом дууслаа!</div>
-    <div style="color:#ffe99a;font-size:1rem;margin-bottom:15px;line-height:1.6;" id="end-desc"></div>
-    <button class="btn-game btn-roll" style="margin:10px auto;display:block;" onclick="restartGame()">
-      🔄 Дахин тоглох
-    </button>
-    <button class="btn-game" style="margin:5px auto;display:block;background:rgba(255,255,255,0.1);color:white;" onclick="goHome()">
-      🏠 Нүүр хуудас
-    </button>
-  </div>
-</div>
-
-<style>
-@keyframes graze {
-  0%, 100% { transform: translateY(0) scaleX(1); }
-  25% { transform: translateY(-4px) scaleX(1); }
-  50% { transform: translateY(0) scaleX(-1); }
-  75% { transform: translateY(-2px) scaleX(-1); }
-}
-@keyframes animalWalk {
-  0%, 100% { transform: translateX(0); }
-  50% { transform: translateX(10px); }
-}
-</style>
 
 <script>
-// ================================================================
-// GAME STATE
-// ================================================================
-const STATE = {
-  stage: 1,
-  totalStages: 10,
-  shagaiCount: 0,
-  gerProgress: 0, // 0-6 steps
-  lastRoll: [],
-  ownedItems: {},
-  quizAnswered: false,
-  currentQuiz: 0,
-  rollsThisStage: 0,
-  isRolling: false
-};
+    // Тоглоомын төлөв
+    let gameState = {
+        shagaiCount: 0,
+        rollsLeft: 5,
+        gerStage: 0
+    };
 
-// ================================================================
-// SHAGAI SIDES
-// ================================================================
-const SHAGAI_SIDES = [
-  { name: 'Морь', emoji: '🐎', color: '#ff6b35' },
-  { name: 'Хонь', emoji: '🐑', color: '#95a5a6' },
-  { name: 'Үхэр', emoji: '🐄', color: '#8B4513' },
-  { name: 'Тэмээ', emoji: '🐪', color: '#e8c97a' }
-];
+    const SHAGAI_TYPES = ["🐎 Морь", "🐑 Хонь", "🐄 Үхэр", "🐪 Тэмээ"];
 
-// Probability weights per stage (higher stage = better chances)
-function getWeights(stage) {
-  const base = [4, 3, 2, 1]; // morj, honj, uher, temee
-  return base;
-}
+    function rollShagai() {
+        if (gameState.rollsLeft <= 0) {
+            alert("Энэ үеийн эрх дууслаа!");
+            return;
+        }
 
-function rollOneSide() {
-  const r = Math.random() * 10;
-  if (r < 4) return 0; // Морь
-  if (r < 7) return 1; // Хонь
-  if (r < 9) return 2; // Үхэр
-  return 3;             // Тэмээ
-}
+        const slots = document.querySelectorAll('.shagai-slot');
+        let currentRoll = [];
+        
+        slots.forEach(slot => {
+            const randomIndex = Math.floor(Math.random() * 4);
+            const result = SHAGAI_TYPES[randomIndex];
+            currentRoll.push(result);
+            
+            slot.classList.add('rolled');
+            slot.innerText = result.split(' ')[0]; // Эможи
+        });
 
-// ================================================================
-// SHOP ITEMS
-// ================================================================
-const SHOP_ITEMS = [
-  {
-    id: 'toono', name: 'Тооно', icon: '⭕', 
-    desc: 'Гэрийн дээд хэсгийн дугуй цонх. Гэрлийг оруулдаг.',
-    price: 5, gerStep: 0,
-    fact: 'Тооно бол гэрийн нарны цаг!'
-  },
-  {
-    id: 'uni', name: 'Уни', icon: '🪵',
-    desc: 'Тооноос хананд тулгуурладаг мод.',
-    price: 8, gerStep: 1,
-    fact: 'Уни нь нарны туяа шиг гэрлийн тойрогт байрладаг.'
-  },
-  {
-    id: 'khana', name: 'Хана', icon: '🔲',
-    desc: 'Торлосон хийцтэй уян хаалт хана.',
-    price: 12, gerStep: 2,
-    fact: 'Хана нь 4-8 давхрага байдаг!'
-  },
-  {
-    id: 'esgii', name: 'Эсгий', icon: '🟫',
-    desc: 'Хонины ноосоор хийсэн дулаан бүрхүүл.',
-    price: 15, gerStep: 3,
-    fact: 'Эсгий нь -40°C хүйтнийг тэвчдэг!'
-  },
-  {
-    id: 'khaalga', name: 'Хаалга', icon: '🚪',
-    desc: 'Гэрийн өмнө зүгт байрлах чимэглэлтэй хаалга.',
-    price: 10, gerStep: 4,
-    fact: 'Монгол гэрийн хаалга үргэлж өмнө зүгт!'
-  },
-  {
-    id: 'chimeglel', name: 'Чимэглэл', icon: '🎨',
-    desc: 'Улаан, шар, цэнхэр зурааслал чимэглэл.',
-    price: 18, gerStep: 5,
-    fact: 'Монгол хээ нь 7000 жилийн түүхтэй!'
-  },
-  {
-    id: 'morj', name: 'Морь', icon: '🐎',
-    desc: '5 хошуу малын тэргүүн.',
-    price: 20, gerStep: -1,
-    fact: 'Монгол хүнд тав морь байдаг гэдэг!'
-  },
-  {
-    id: 'honj', name: 'Хонь', emoji: '🐑',
-    icon: '🐑', desc: 'Ноос, сүү, мах бүгдийг өгдөг.',
-    price: 7, gerStep: -1,
-    fact: 'Монголд 60 сая гаруй хонь байдаг!'
-  },
-  {
-    id: 'uher', name: 'Үхэр', icon: '🐄',
-    desc: 'Сүү, мах, хүч хөдөлмөрт.',
-    price: 15, gerStep: -1,
-    fact: 'Сарлаг бол Монголын уулын үхэр!'
-  },
-  {
-    id: 'temee', name: 'Тэмээ', icon: '🐪',
-    desc: 'Цөлийн жин тэвч мал.',
-    price: 25, gerStep: -1,
-    fact: 'Хоёр бөхт тэмээ Монголд байдаг!'
-  }
-];
+        calculatePoints(currentRoll);
+        gameState.rollsLeft--;
+        updateHUD();
+    }
 
-const GER_STEPS = [
-  { name: 'Тооно', icon: '⭕', itemId: 'toono', desc: 'Дугуй цонх' },
-  { name: 'Уни', icon: '🪵', itemId: 'uni', desc: 'Дэмжлэгийн мод' },
-  { name: 'Хана', icon: '🔲', itemId: 'khana', desc: 'Торлосон хана' },
-  { name: 'Эсгий', icon: '🟫', itemId: 'esgii', desc: 'Ноосон бүрхүүл' },
-  { name: 'Хаалга', icon: '🚪', itemId: 'khaalga', desc: 'Чимэглэлт хаалга' },
-  { name: 'Чимэглэл', icon: '🎨', itemId: 'chimeglel', desc: 'Уламжлалт хээ' }
-];
+    function calculatePoints(roll) {
+        const horses = roll.filter(s => s.includes("Морь")).length;
+        let reward = 5;
+        let resultEl = document.getElementById('result-text');
 
-// ================================================================
-// QUIZ QUESTIONS
-// ================================================================
-const QUIZ_QUESTIONS = [
-  {
-    q: '🦴 Шагай гэж юу вэ? Монгол хүн яагаад шагай чухалчилдаг вэ?',
-    opts: ['Яс тоглоом', 'Хонь, ямааны шилбэний яс — тоглоом, зөгнөлд хэрэглэнэ', 'Чулуун тоглоом', 'Мод'],
-    ans: 1,
-    explain: '🎯 Зөв! Шагай бол хонь, ямааны шилбэний яс бөгөөд монголчууд эртнээс тоглоом, зөгнөл, чимэглэлд хэрэглэдэг.'
-  },
-  {
-    q: '🏠 Монгол гэр хэдэн үндсэн хэсгээс тогтдог вэ?',
-    opts: ['3 хэсэг', '5 хэсэг', '7 хэсэг', '10 хэсэг'],
-    ans: 1,
-    explain: '✅ Зөв! Тооно, уни, хана, эсгий, хаалга гэсэн 5 үндсэн хэсэгтэй.'
-  },
-  {
-    q: '🐎 Монголын "5 хошуу мал" гэж юу вэ?',
-    opts: ['Морь, үхэр, хонь, ямаа, тэмээ', 'Нохой, муур, туулай, бух, ямаа', 'Морь, арслан, бар, чоно, буга', 'Хонь, ямаа, тэмээ, элбэнх, буга'],
-    ans: 0,
-    explain: '🐄 Зөв! Морь, үхэр, хонь, ямаа, тэмээ — энэ таван мал монгол малчдын уламжлалт мал аж ахуйн үндэс.'
-  },
-  {
-    q: '🎯 Шагай орхиход 4 морь буувал юу гэдэг вэ?',
-    opts: ['Мухар', 'Алтан шар', 'Хар', 'Цагаан'],
-    ans: 1,
-    explain: '⭐ Зөв! 4 морь бол "Алтан шар" — хамгийн азтай дүн!'
-  },
-  {
-    q: '🌙 "Цагаан сар" гэж ямар баяр вэ?',
-    opts: ['Шинэ жилийн баяр', 'Монголын уламжлалт Шинэ жил баяр (Лунар)', 'Зуны баяр', 'Намрын баяр'],
-    ans: 1,
-    explain: '🎊 Зөв! Цагаан сар бол Монголын уламжлалт шинэ жил. Гурил цагаан идээ идэж, ахмадуудаа золгодог.'
-  },
-  {
-    q: '🏹 Монголын "Гурван Наадам"-д ямар тэмцээн байдаг вэ?',
-    opts: ['Бокс, бөх, сэлүүр', 'Бөх, морь уралдаан, сур харвах', 'Гүйлт, усанд сэлэлт, дэвших', 'Бөмбөг, сагсан бөмбөг, теннис'],
-    ans: 1,
-    explain: '🏆 Зөв! Наадам бол бөх, морин уралдаан, сур харвааны баяр тэмцээн!'
-  },
-  {
-    q: '🐫 Монголын тэмээ ямар онцлогтой вэ?',
-    opts: ['Нэг бөхтэй', 'Хоёр бөхтэй', 'Бөхгүй', 'Гурван бөхтэй'],
-    ans: 1,
-    explain: '🐪 Зөв! Монголын Бактриан тэмээ хоёр бөхтэй. Бөхдөө тосоо хадгалдаг!'
-  },
-  {
-    q: '🌊 Монголын хамгийн урт гол аль нь вэ?',
-    opts: ['Орхон гол', 'Сэлэнгэ гол', 'Туул гол', 'Онон гол'],
-    ans: 1,
-    explain: '💧 Зөв! Сэлэнгэ гол
+        if (horses === 4) {
+            reward = 100;
+            resultEl.className = 'altanShar-result';
+            resultEl.innerText = "✨ АЛТАН ШАР БУУЛАА! +100 ✨";
+        } else if (horses === 1) {
+            reward = 10;
+            resultEl.className = '';
+            resultEl.innerText = "Морь буулаа! +10";
+        } else {
+            resultEl.className = '';
+            resultEl.innerText = "Амжилттай! +5";
+        }
+
+        gameState.shagaiCount += reward;
+    }
+
+    function buildGer(part) {
+        const costs = { 'hana': 50, 'uni': 80, 'toono': 150 };
+        
+        if (gameState.shagaiCount >= costs[part]) {
+            gameState.shagaiCount -= costs[part];
+            alert(part.toUpperCase() + " амжилттай баригдлаа!");
+            updateHUD();
+        } else {
+            alert("Шагай хүрэлцэхгүй байна!");
+        }
+    }
+
+    function updateHUD() {
+        document.getElementById('shagai-balance').innerText = gameState.shagaiCount;
+        document.getElementById('rolls-display').innerText = gameState.rollsLeft;
+        
+        if(gameState.rollsLeft === 0) {
+            document.getElementById('roll-btn').disabled = true;
+        }
+    }
+</script>
+
+</body>
+</html>
