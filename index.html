@@ -1,158 +1,63 @@
-<!DOCTYPE html>
-<html lang="mn">
-<head>
-    <meta charset="UTF-8">
-    <title>Шагай Аялал - Ижил дүрсийг цуглуулах</title>
-    <style>
-        :root { --mongol-blue: #003366; --gold: #FFD700; }
-        body { font-family: 'Arial', sans-serif; background: #f4f4f4; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .stats { display: flex; gap: 20px; background: var(--mongol-blue); color: white; padding: 15px 30px; border-radius: 50px; margin-bottom: 20px; }
-        canvas { background: #fff; border: 5px solid var(--mongol-blue); border-radius: 15px; cursor: crosshair; }
-        .info-panel { margin-top: 15px; padding: 15px; background: white; border-radius: 10px; width: 800px; text-align: center; }
-        .highlight { color: #d32f2f; font-weight: bold; }
-    </style>
-</head>
-<body>
+function drawShagai(ctx, x, y, radius, side) {
+    ctx.save();
+    ctx.translate(x, y);
+    
+    // 1. Металл алтлаг эффект гаргах Gradient
+    let goldGrad = ctx.createLinearGradient(-radius, -radius, radius, radius);
+    goldGrad.addColorStop(0, "#D4AF37"); // Dark Gold
+    goldGrad.addColorStop(0.2, "#FFDF00"); // Bright Gold
+    goldGrad.addColorStop(0.5, "#FFFFFF"); // Reflection (Highlight)
+    goldGrad.addColorStop(0.8, "#CFB53B"); // Old Gold
+    goldGrad.addColorStop(1, "#8B6508"); // Shadow Gold
 
-    <div class="stats">
-        <div>💰 Цуглуулсан: <span id="balance">0</span></div>
-        <div>🎯 Дараагийн бай: <span id="target-hint" class="highlight">???</span></div>
-    </div>
+    ctx.fillStyle = goldGrad;
+    ctx.strokeStyle = "#8B6508";
+    ctx.lineWidth = 1;
 
-    <canvas id="gameCanvas" width="900" height="450"></canvas>
+    // Сүүдэр нэмэх
+    ctx.shadowColor = "rgba(0,0,0,0.4)";
+    ctx.shadowBlur = 12;
+    ctx.shadowOffsetY = 6;
 
-    <div class="info-panel">
-        💡 <b>Дүрмүүд:</b> <span class="highlight">Зөвхөн өөрийн шагайтай ижил дүрсийг</span> онож цуглуулна. <br>
-        Талбай дээр тогтмол 15 шагай байх болно.
-    </div>
-
-<script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-
-    const SHAGAI_SIDES = [
-        { icon: "🐎", name: "Морь" },
-        { icon: "🐑", name: "Хонь" },
-        { icon: "🐪", name: "Тэмээ" },
-        { icon: "🐐", name: "Ямаа" }
-    ];
-
-    let score = 0;
-    let isDragging = false;
-    let startX, startY, mouseX, mouseY;
-
-    // Харвагч шагай
-    let shooter = { 
-        x: 100, y: 225, vx: 0, vy: 0, radius: 22, moving: false, 
-        side: SHAGAI_SIDES[Math.floor(Math.random() * 4)] 
-    };
-
-    // 15 Бай шагай
-    let targets = [];
-    function createTargets() {
-        while (targets.length < 15) {
-            targets.push({
-                x: 300 + Math.random() * 550,
-                y: 50 + Math.random() * 350,
-                radius: 18,
-                active: true,
-                side: SHAGAI_SIDES[Math.floor(Math.random() * 4)]
-            });
-        }
+    // 2. Дүрс бүрийн хэлбэрийг тусгайлан зурах
+    ctx.beginPath();
+    
+    switch(side.name) {
+        case "Морь": // image_d53cd6.jpg-ийн зүүн дээд талынх шиг төвгөр
+            ctx.moveTo(-radius, 0);
+            ctx.bezierCurveTo(-radius, -radius, radius, -radius, radius, 0);
+            ctx.bezierCurveTo(radius, radius*0.5, 0, radius, -radius, 0);
+            break;
+        case "Тэмээ": // Баруун дээд талынх шиг хоёр бөхтэй мэт хотгор
+            ctx.moveTo(-radius, -radius*0.2);
+            ctx.quadraticCurveTo(-radius*0.5, -radius*1.2, 0, -radius*0.5);
+            ctx.quadraticCurveTo(radius*0.5, -radius*1.2, radius, -radius*0.2);
+            ctx.lineTo(radius, radius*0.5);
+            ctx.quadraticCurveTo(0, radius*1.2, -radius, radius*0.5);
+            ctx.closePath();
+            break;
+        case "Хонь": // Зүүн доод талынх шиг бөөрөнхий
+            ctx.ellipse(0, 0, radius, radius * 0.8, 0, 0, Math.PI * 2);
+            break;
+        case "Ямаа": // Баруун доод талынх шиг нарийн, шовх талтай
+            ctx.moveTo(-radius, 0);
+            ctx.lineTo(-radius*0.5, -radius*0.8);
+            ctx.lineTo(radius*0.5, -radius*0.8);
+            ctx.lineTo(radius, 0);
+            ctx.lineTo(0, radius*0.8);
+            ctx.closePath();
+            break;
     }
 
-    canvas.addEventListener('mousedown', e => {
-        if (shooter.moving) return;
-        const rect = canvas.getBoundingClientRect();
-        let mX = e.clientX - rect.left;
-        let mY = e.clientY - rect.top;
-        if (Math.hypot(mX - shooter.x, mY - shooter.y) < shooter.radius * 1.5) {
-            isDragging = true; startX = mX; startY = mY;
-        }
-    });
+    ctx.fill();
+    ctx.stroke();
 
-    canvas.addEventListener('mousemove', e => {
-        const rect = canvas.getBoundingClientRect();
-        mouseX = e.clientX - rect.left;
-        mouseY = e.clientY - rect.top;
-    });
-
-    window.addEventListener('mouseup', () => {
-        if (!isDragging) return;
-        isDragging = false;
-        shooter.vx = (startX - mouseX) * 0.18;
-        shooter.vy = (startY - mouseY) * 0.18;
-        shooter.moving = true;
-    });
-
-    function drawShagai(x, y, radius, side, isShooter) {
-        ctx.beginPath();
-        ctx.ellipse(x, y, radius, radius * 0.75, 0, 0, Math.PI * 2);
-        ctx.fillStyle = isShooter ? "#FFD700" : "#fff"; // Харвагч шар өнгөтэй
-        ctx.fill();
-        ctx.strokeStyle = "#8B4513";
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        ctx.font = `${radius}px Arial`;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillStyle = "black";
-        ctx.fillText(side.icon, x, y);
-    }
-
-    function update() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        document.getElementById('target-hint').innerText = shooter.side.name + " " + shooter.side.icon;
-
-        if (isDragging) {
-            ctx.beginPath();
-            ctx.moveTo(shooter.x, shooter.y);
-            ctx.lineTo(mouseX, mouseY);
-            ctx.strokeStyle = "rgba(0,0,0,0.2)";
-            ctx.stroke();
-        }
-
-        if (shooter.moving) {
-            shooter.x += shooter.vx; shooter.y += shooter.vy;
-            shooter.vx *= 0.985; shooter.vy *= 0.985;
-            
-            // Хана мөргөх
-            if (shooter.x < 20 || shooter.x > canvas.width - 20) shooter.vx *= -0.8;
-            if (shooter.y < 20 || shooter.y > canvas.height - 20) shooter.vy *= -0.8;
-
-            if (Math.abs(shooter.vx) < 0.2 && Math.abs(shooter.vy) < 0.2) {
-                shooter.moving = false; shooter.x = 100; shooter.y = 225;
-                shooter.side = SHAGAI_SIDES[Math.floor(Math.random() * 4)];
-            }
-        }
-
-        targets.forEach((t, index) => {
-            if (t.active) {
-                let dist = Math.hypot(shooter.x - t.x, shooter.y - t.y);
-                if (dist < shooter.radius + t.radius) {
-                    // Ижил дүрс мөн эсэхийг шалгах
-                    if (t.side.name === shooter.side.name) {
-                        t.active = false;
-                        score++;
-                        document.getElementById('balance').innerText = score;
-                        targets.splice(index, 1);
-                        createTargets(); // Устсан бол нөхөж 15 болгох
-                    } else {
-                        // Өөр дүрс бол зүгээр л ойж холдоно
-                        t.x += shooter.vx * 0.5;
-                        t.y += shooter.vy * 0.5;
-                    }
-                }
-                drawShagai(t.x, t.y, t.radius, t.side, false);
-            }
-        });
-
-        drawShagai(shooter.x, shooter.y, shooter.radius, shooter.side, true);
-        requestAnimationFrame(update);
-    }
-
-    createTargets();
-    update();
-</script>
-</body>
-</html>
+    // 3. Гэрэлтэлтийн эффект (Гялбаа нэмэх)
+    ctx.globalAlpha = 0.3;
+    ctx.fillStyle = "white";
+    ctx.beginPath();
+    ctx.ellipse(-radius*0.3, -radius*0.3, radius*0.2, radius*0.1, Math.PI/4, 0, Math.PI*2);
+    ctx.fill();
+    
+    ctx.restore();
+}
