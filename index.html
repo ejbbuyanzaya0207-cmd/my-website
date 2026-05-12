@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Монгол гэр – 10 үе | Шагай өргөө</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        /* === АРЫН ДЭВСГЭР: ТАЛ ХЭЭР, УУЛ, 5 ХОШУУ МАЛ === */
+        body {
+            min-height: 100vh;
+            background: linear-gradient(170deg, #cfe8cf 0%, #bcd0a0 40%, #8fb06b 100%);
+            font-family: 'Segoe UI', 'Montserrat', 'Poppins', system-ui, sans-serif;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* уулсын дүрс */
+        body::before {
+            content: "";
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 35%;
+            background: linear-gradient(0deg, #537a3a, #7c9c5e);
+            z-index: 0;
+            border-radius: 80% 20% 0 0 / 60% 30% 0 0;
+            box-shadow: 0 -10px 20px rgba(0,0,0,0.1);
+        }
+
+        /* Алс уулс */
+        body::after {
+            content: "";
+            position: fixed;
+            bottom: 15%;
+            left: 0;
+            width: 100%;
+            height: 20%;
+            background: linear-gradient(120deg, #4d6e34, #2c4b1e);
+            clip-path: polygon(0% 100%, 10% 40%, 22% 70%, 35% 30%, 52% 65%, 68% 25%, 84% 55%, 100% 30%, 100% 100%);
+            z-index: 0;
+            opacity: 0.5;
+        }
+
+        /* 5 хошуу малын дүрс (анхаарал татахуйц шедоу) */
+        .livestock-bg {
+            position: fixed;
+            bottom: 5%;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 2rem;
+            filter: drop-shadow(2px 6px 8px rgba(0,0,0,0.3));
+            z-index: 0;
+            opacity: 0.35;
+            pointer-events: none;
+        }
+
+        .livestock-bg span {
+            background: rgba(100,70,30,0.2);
+            border-radius: 60px;
+            padding: 5px 12px;
+            backdrop-filter: blur(1px);
+        }
+
+        /* гол тоглоомын контейнер */
+        .game-container {
+            position: relative;
+            z-index: 10;
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(253, 250, 235, 0.92);
+            backdrop-filter: blur(3px);
+            border-radius: 80px 48px 80px 48px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3), inset 0 1px 3px rgba(255,245,200,0.8);
+            overflow: hidden;
+            transition: 0.2s;
+            border: 2px solid #efcd91;
+        }
+
+        /* дээд хэсэг */
+        .game-header {
+            background: #906a3b;
+            background-image: linear-gradient(145deg, #b87b3c, #845e2c);
+            padding: 18px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            border-bottom: 5px solid #f5cf7b;
+        }
+
+        .title-section h1 {
+            margin: 0;
+            font-size: 1.9rem;
+            letter-spacing: 2px;
+            color: #ffefb0;
+            text-shadow: 3px 3px 0 #543d1a;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .shagai-badge {
+            background: #2b231b;
+            border-radius: 60px;
+            padding: 6px 22px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: bold;
+            font-size: 1.4rem;
+            color: #fad974;
+            box-shadow: inset 0 1px 3px #00000055, 0 3px 5px #ffd96688;
+        }
+
+        .level-indicator {
+            background: #442f1d;
+            padding: 6px 20px;
+            border-radius: 40px;
+            color: #ffeaad;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        /* хоёр багана */
+        .game-double {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            padding: 28px 32px;
+        }
+
+        .quest-area {
+            flex: 2;
+            min-width: 280px;
+            background: #fffcf0;
+            border-radius: 48px;
+            padding: 20px 24px;
+            box-shadow: 6px 6px 14px rgba(0,0,0,0.08);
+        }
+
+        .shop-area {
+            flex: 1.5;
+            min-width: 280px;
+            background: #fef7e6;
+            border-radius: 48px;
+            padding: 18px;
+            border: 1px solid #eac471;
+        }
+
+        .question-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: #f4e6c7;
+            padding: 20px;
+            border-radius: 40px;
+            text-align: center;
+            color: #2c4527;
+            border-left: 12px solid #cf912e;
+            margin-bottom: 25px;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .opt-btn {
+            background: #efe2bd;
+            border: none;
+            padding: 14px 18px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 100px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: 0.1s;
+            cursor: pointer;
+            font-family: inherit;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .opt-btn:hover:not(:disabled) {
+            background: #e2cf92;
+            transform: scale(0.98);
+        }
+
+        .opt-btn:disabled {
+            opacity: 0.7;
+            cursor: default;
+        }
+
+        .next-btn {
+            background: #c47d35;
+            border: none;
+            width: 100%;
+            padding: 14px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: white;
+            border-radius: 60px;
+            cursor: pointer;
+            font-family: inherit;
+            box-shadow: 0 5px 0 #5f3a16;
+            transition: 0.05s linear;
+        }
+
+        .next-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #5f3a16;
+        }
+
+        .next-btn:disabled {
+            background: #a9946e;
+            box-shadow: none;
+            transform: none;
+            cursor: not-allowed;
+        }
+
+        /* SHOP - хоёр ангилал */
+        .shop-category {
+            margin-top: 20px;
+            border-top: 2px dashed #ddb76b;
+            padding-top: 12px;
+        }
+
+        .shop-category h3 {
+            font-size: 1.3rem;
+            background: #eabe7b;
+            display: inline-block;
+            padding: 4px 18px;
+            border-radius: 40px;
+            margin-bottom: 12px;
+            color: #33200c;
+        }
+
+        .parts-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .part-card {
+            background: #faeec6;
+            width: 100px;
+            padding: 8px 4px;
+            border-radius: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.1s;
+            border: 2px solid #e7b155;
+            box-shadow: 0 4px 6px #0000001a;
+        }
+
+        .part-card.bought {
+            opacity: 0.6;
+            filter: grayscale(0.2);
+            cursor: default;
+            background: #b48b4b;
+        }
+
+        .part-name {
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .part-price {
+            font-size: 0.7rem;
+            background: #ad631f;
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 40px;
+            color: white;
+            margin-top: 5px;
+        }
+
+        .ger-progress {
+            background: #eecf92;
+            border-radius: 40px;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+            margin: 12px 0;
+        }
+
+        .completed-ger {
+            background: #6e4f2a;
+            color: #ffeaaf;
+            padding: 10px;
+            border-radius: 40px;
+            text-align: center;
+            margin: 8px 0;
+        }
+
+        .reset-shop {
+            background: #9c562b;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 12px;
+        }
+
+        footer {
+            background: #cdaf7a;
+            text-align: center;
+            padding: 10px;
+            font-size: 0.75rem;
+            color: #2a2b0e;
+        }
+
+        @media (max-width: 700px) {
+            .game-double { padding: 16px; }
+            .part-card { width: 85px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Арын дэвсгэрийн 5 хошуу мал (зураг биш, хөөрхөн дүрс) -->
+<div class="livestock-bg">
+    <span>🐎 Морь</span> <span>🐫 Тэмээ</span> <span>🐂 Үхэр</span> <span>🐑 Хонь</span> <span>🐐 Ямаа</span>
+</div>
+
+<div class="game-container" id="gameApp">
+    <div class="game-header">
+        <div class="title-section">
+            <h1>🏕️ Монгол гэр</h1>
+            <div class="shagai-badge">
+                🦴 <span id="shagaiCount">0</span> шагай
+            </div>
+        </div>
+        <div class="level-indicator">
+            ⚡ Үе <span id="levelDisplay">1</span> / 10
+        </div>
+    </div>
+
+    <div class="game-double">
+        <!-- ЗҮҮН: АСУУЛТ -->
+        <div class="quest-area">
+            <div class="question-text" id="questionText">Монгол гэрийн гол бэлгэдэл юу вэ?</div>
+            <div class="options" id="optionsContainer"></div>
+            <button class="next-btn" id="nextLevelBtn">➡ ДАРААГИЙН ҮЕ ⬅</button>
+            <div style="font-size: 0.7rem; text-align:center; margin-top: 12px;">✨ Зөв хариулт бүр: +5 шагай ✨</div>
+        </div>
+
+        <!-- БАРУУН: ДЭЛГҮҮР + ГЭР ДОТОР / 5 ХОШУУ МАЛ -->
+        <div class="shop-area">
+            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                <div class="shop-title" style="font-size: 1.7rem; font-weight: bold;">🏪 Дэлгүүр</div>
+                <button id="resetGameBtn" class="reset-shop" style="width: auto; margin-top:0;">🔄 Дахин эхлүүлэх</button>
+            </div>
+
+            <!-- ангилал 1: Гэрийн эд анги + доторх зүйлс -->
+            <div class="shop-category">
+                <h3>🏠 Гэр & тохижуулга</h3>
+                <div class="parts-grid" id="homePartsGrid"></div>
+            </div>
+
+            <!-- ангилал 2: 5 хошуу мал -->
+            <div class="shop-category">
+                <h3>🐪 5 хошуу мал</h3>
+                <div class="parts-grid" id="livestockGrid"></div>
+            </div>
+
+            <div class="ger-progress">
+                🧩 Гэрийн гол хэсгүүд: <span id="ownedGerParts">0</span> / <span id="totalGerParts">0</span>
+            </div>
+            <div id="gerBuiltMessage" class="completed-ger" style="display: none;">
+                🎉 Баяр хүргэе! Та бүтэн Монгол гэр барьж дууслаа! 🎉
+            </div>
+        </div>
+    </div>
+    <footer>🎌 10 үе дамжин шагай цуглуулж, гэрээ тохижуулж, 5 хошуу малаа цуглуул</footer>
+</div>
+
+<script>
+    // ======================= 10 ҮЕ: МОНГОЛ ЁС, ТҮҮХ =======================
+    const LEVELS = [
+        { question: "1. Монгол гэрийн дээд ам (тэнгэрийн бэлгэдэл) хэсгийг юу гэх вэ?", options: ["Тооно", "Унь", "Хаалга", "Баган"], correct: 0, info: "Тооно – гэрийн орой, нар сар, тэнгэрийн бэлгэдэл." },
+        { question: "2. Наадамд хэрэглэдэг хүчит спорт? (Эрэгтэй гурван наадам)", options: ["Бөх", "Сум харваа", "Морин уралдаан", "Дээрх бүгд"], correct: 3, info: "Эрэгтэй гурван наадам: бөх, харваа, морь." },
+        { question: "3. Цагаан сард ахмадад золгох зөв хэлбэр?", options: ["Зөв гараа гаргаж, тохой барьж золгох", "Дөрвөн хөл мөргөх", "Мөрөн дээр хүрэх", "Араас нь бөхийх"], correct: 0, info: "Золголт – ахмадын гарыг доороос дэмжин авдаг." },
+        { question: "4. Монгол бичгийн 'Тод бичиг'-ийг хэн үүсгэсэн бэ?", options: ["Чингис хаан", "Хубилай", "Заяан бандида", "Сүхбаатар"], correct: 2, info: "Заяан бандида 1648 онд Тод бичгийг зохиосон." },
+        { question: "5. Морин хуурын толгой хэний дүрстэй вэ?", options: ["Буга", "Морь", "Тэмээ", "Чоно"], correct: 1, info: "Морин хуур — морины толгойтой нүүдэлчдийн хөгжим." },
+        { question: "6. 'Хадгалалт, айлчлалд өгөх хүндэтгэлийн зүйл' – энэ юу вэ?", options: ["Сүү", "Хадаг", "Архи", "Цагаан будаа"], correct: 1, info: "Хадаг — хүндэтгэл, ариун бэлгэдэл." },
+        { question: "7. Монголын уламжлалт 'Шагай' хэдэн талтай вэ?", options: ["4", "6", "2", "8"], correct: 0, info: "Шагай 4 тал: хонь, ямаа, үхэр, тэмээ гэж нэрлэдэг." },
+        { question: "8. Нүүдэлчдийн сүүн бүтээгдэхүүн 'Айраг' хэрхэн бэлтгэдэг вэ?", options: ["Гүүний сүүг исгэж", "Үнээний сүү буцалгаж", "Хонины сүү тарааж", "Ямааны сүү хатааж"], correct: 0, info: "Айраг — гүүний сүүг исгэсэн ундаа." },
+        { question: "9. Монгол гэрийг хэрхэн чиглүүлэн байрлуулдаг вэ?", options: ["Зүүн хаалгатай", "Өмнө зүг хаалгатай", "Баруун хаалгатай", "Хойд зүг хаалгатай"], correct: 1, info: "Гэрийн хаалга өмнө зүг рүү хардаг." },
+        { question: "10. Монгол улсын төрийн сүлдэнд ямар мал дүрслэгдсэн бэ?", options: ["Алтан галуу", "Морин уралдаант", "Тэмээ, морь", "Хоёр загас"], correct: 2, info: "Төрийн сүлдэнд морь, тэмээ багтдаг." }
+    ];
+
+    // ======================= ДЭЛГҮҮРИЙН ЭД ЗҮЙЛС =======================
+    // Нийт 12 зүйл: 5 гэрийн бүтэц, 3 доторх тохижуулга, 4 хошуу мал ? (5 хошуу бүрэн)
+    const HOME_PARTS = [
+        { id: "toono", name: "🗝 Тооно", price: 4, category: "ger", owned: false },
+        { id: "uni", name: "🪵 Унь", price: 5, category: "ger", owned: false },
+        { id: "door", name: "🚪 Хаалга", price: 3, category: "ger", owned: false },
+        { id: "table", name: "🪑 Гэрийн ширээ", price: 3, category: "ger", owned: false },
+        { id: "stove", name: "🔥 Гал зуух", price: 4, category: "ger", owned: false },
+        // гэр доторх нэмэлт
+        { id: "carpet", name: "🕌 Хивс", price: 3, category: "interior", owned: false },
+        { id: "airag", name: "🧉 Айрагны сав", price: 3, category: "interior", owned: false },
+        { id: "lantern", name: "🏮 Дэнлүү", price: 2, category: "interior", owned: false },
+        { id: "chest", name: "📦 Модон авдар", price: 3, category: "interior", owned: false }
+    ];
+
+    const LIVESTOCK = [
+        { id: "horse", name: "🐎 Морь", price: 4, owned: false },
+        { id: "camel", name: "🐫 Тэмээ", price: 5, owned: false },
+        { id: "cow", name: "🐂 Үхэр", price: 4, owned: false },
+        { id: "sheep", name: "🐑 Хонь", price: 3, owned: false },
+        { id: "goat", name: "🐐 Ямаа", price: 3, owned: false }
+    ];
+
+    // тоглоомын төлөв
+    let currentLevel = 0;
+    let shagaiTotal = 0;
+    let answered = false;
+    let selectedChoice = -1;
+    let gameCompleted = false;
+
+    // Дэлгүүрийн объектууд
+    let homeParts = HOME_PARTS.map(p => ({ ...p }));
+    let livestock = LIVESTOCK.map(l => ({ ...l }));
+
+    // DOM элементүүд
+    const shagaiSpan = document.getElementById('shagaiCount');
+    const levelDisplaySpan = document.getElementById('levelDisplay');
+    const questionDiv = document.getElementById('questionText');
+    const optionsDiv = document.getElementById('optionsContainer');
+    const nextBtn = document.getElementById('nextLevelBtn');
+    const resetGameBtn = document.getElementById('resetGameBtn');
+    const homeGrid = document.getElementById('homePartsGrid');
+    const livestockGrid = document.getElementById('livestockGrid');
+    const ownedGerSpan = document.getElementById('ownedGerParts');
+    const totalGerSpan = document.getElementById('totalGerParts');
+    const gerMsgDiv = document.getElementById('gerBuiltMessage');
+
+    // UI update functions --------------------------------
+    function updateShagaiUI() {
+        shagaiSpan.innerText = shagaiTotal;
+    }
+
+    function updateGerProgress() {
+        const gerEssential = homeParts.filter(p => p.category === 'ger');
+        const ownedGer = gerEssential.filter(p => p.owned).length;
+        ownedGerSpan.innerText = ownedGer;
+        totalGerSpan.innerText = gerEssential.length;
+        if (ownedGer === gerEssential.length && gerEssential.length > 0) {
+            gerMsgDiv.style.display = 'block';
+        } else {
+            gerMsgDiv.style.display = 'none';
+        }
+    }
+
+    // дэлгүүр дүүргэх
+    function renderShop() {
+        // Гэрийн хэсэг + тохижуулга
+        homeGrid.innerHTML = '';
+        [...homeParts].forEach(part => {
+            const card = document.createElement('div');
+            card.className = 'part-card';
+            if (part.owned) card.classList.add('bought');
+            card.innerHTML = `
+                <div class="part-name">${part.name}</div>
+                <div class="part-price">💰 ${part.price} шагай</div>
+            `;
+            if (!part.owned && !gameCompleted) {
+                card.addEventListener('click', () => {
+                    if (shagaiTotal >= part.price) {
+                        shagaiTotal -= part.price;
+                        part.owned = true;
+                        updateShagaiUI();
+                        renderShop();
+                        updateGerProgress();
+                    } else {
+                        alert(`Шагай хүрэлцэхгүй байна. (${shagaiTotal}/${part.price}) Асуултад хариулж цуглуул.`);
+                    }
+                });
+            }
+            homeGrid.appendChild(card);
+        });
+
+        // 5 хошуу мал
+        livestockGrid.innerHTML = '';
+        livestock.forEach(animal => {
+            const card = document.createElement('div');
+            card.className = 'part-card';
+            if (animal.owned) card.classList.add('bought');
+            card.innerHTML = `
+                <div class="part-name">${animal.name}</div>
+                <div class="part-price">💰 ${animal.price} шагай</div>
+            `;
+            if (!animal.owned && !gameCompleted) {
+                card.addEventListener('click', () => {
+                    if (shagaiTotal >= animal.price) {
+                        shagaiTotal -= animal.price;
+                        animal.owned = true;
+                        updateShagaiUI();
+                        renderShop();
+                    } else {
+                        alert(`Шагай хүрэлцэхгүй байна. (${shagaiTotal}/${animal.price})`);
+                    }
+                });
+            }
+            livestockGrid.appendChild(card);
+        });
+        updateGerProgress();
+    }
+
+    // Үеийн дүрслэл
+    function renderLevel() {
+        if (gameCompleted) {
+            questionDiv.innerText = "🏆 Та бүх 10 үеийг туулж, соёлтон боллоо! 🏆";
+            optionsDiv.innerHTML = '<div style="text-align:center; padding: 20px;">✨ Монгол уламжлалыг хайрлая ✨</div>';
+            nextBtn.disabled = true;
+            return;
+        }
+        const level = LEVELS[currentLevel];
+        questionDiv.innerText = level.question;
+        levelDisplaySpan.innerText = currentLevel + 1;
+        optionsDiv.innerHTML = '';
+        level.options.forEach((opt, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'opt-btn';
+            btn.innerHTML = `<span style="font-weight:bold">${String.fromCharCode(65+idx)}.</span> ${opt}`;
+            if (answered) {
+                btn.disabled = true;
+                if (idx === level.correct) btn.style.background = "#bddb93";
+                else if (idx === selectedChoice && idx !== level.correct) btn.style.background = "#e6ab7c";
+            } else {
+                btn.addEventListener('click', () => {
+                    if (answered || gameCompleted) return;
+                    selectedChoice = idx;
+                    answered = true;
+                    if (idx === level.correct) {
+                        shagaiTotal += 5;    // +5 шагай
+                        updateShagaiUI();
+                        alert(`✅ Зөв! +5 шагай нэмэгдлээ.\n${level.info}`);
+                    } else {
+                        alert(`❌ Буруу. Зөв хариулт: ${level.options[level.correct]}\n${level.info}`);
+                    }
+                    renderLevel();
+                    renderShop();   // шинэ шагайг дэлгүүрт тусгах
+                });
+            }
+            optionsDiv.appendChild(btn);
+        });
+        nextBtn.disabled = !answered;
+    }
+
+    function goToNextLevel() {
+        if (!answered && !gameCompleted) {
+            alert("Эхлээд хариулна уу!");
+            return;
+        }
+        if (gameCompleted) return;
+        if (currentLevel + 1 < LEVELS.length) {
+            currentLevel++;
+            answered = false;
+            selectedChoice = -1;
+            renderLevel();
+        } else {
+            if (currentLevel === LEVELS.length-1 && answered) {
+                gameCompleted = true;
+                renderLevel();
+                renderShop();
+                alert("🎉 Баяр хүргэе! Та 10 үеийг амжилттай туулж, гэр дүүргэж малын эзэн болоход бэлэн байна!");
+            } else {
+                alert("Та бүх үеийг туулсан. Тоглоомыг шинэчлэх товчоор дахин эхлүүлэх боломжтой.");
+            }
+        }
+    }
+
+    function resetAllGame() {
+        currentLevel = 0;
+        shagaiTotal = 0;
+        answered = false;
+        selectedChoice = -1;
+        gameCompleted = false;
+        homeParts = HOME_PARTS.map(p => ({ ...p, owned: false }));
+        livestock = LIVESTOCK.map(l => ({ ...l, owned: false }));
+        updateShagaiUI();
+        renderLevel();
+        renderShop();
+        gerMsgDiv.style.display = 'none';
+        alert("Тоглоом эхнээсээ шинэчлэгдлээ. Азын шагай цуглуулж, гэр нь байгуул!")
+    }
+
+    // эхлүүлэх
+    function init() {
+        homeParts = HOME_PARTS.map(p => ({ ...p, owned: false }));
+        livestock = LIVESTOCK.map(l => ({ ...l, owned: false }));
+        shagaiTotal = 0;
+        gameCompleted = false;
+        currentLevel = 0;
+        answered = false;
+        updateShagaiUI();
+        renderLevel();
+        renderShop();
+        nextBtn.addEventListener('click', goToNextLevel);
+        resetGameBtn.addEventListener('click', resetAllGame);
+    }
+    init();
+</script>
+</body>
+</html>
