@@ -4,21 +4,26 @@
     <meta charset="UTF-8">
     <title>Шагай Аялал - 3D Gold Edition</title>
     <style>
-        body { font-family: 'Arial', sans-serif; background: #f0f0f0; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .stats { display: flex; gap: 20px; background: #003366; color: white; padding: 15px 30px; border-radius: 50px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        canvas { background: #ffffff; border: 5px solid #003366; border-radius: 15px; cursor: crosshair; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .hint { margin-top: 10px; color: #d32f2f; font-weight: bold; font-size: 1.2em; }
+        :root { --mongol-blue: #003366; --gold: #D4AF37; }
+        body { font-family: 'Arial', sans-serif; background: #e0e0e0; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .stats { display: flex; gap: 20px; background: var(--mongol-blue); color: white; padding: 15px 30px; border-radius: 50px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        canvas { background: #fff; border: 5px solid var(--mongol-blue); border-radius: 15px; cursor: crosshair; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .info { margin-top: 15px; padding: 15px; background: white; border-radius: 10px; text-align: center; width: 800px; }
+        .highlight { color: #d32f2f; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="stats">
-        <div>💰 Оноо: <span id="score">0</span></div>
-        <div>🎯 Одоо харвах: <span id="current-side">Морь 🐎</span></div>
+        <div>💰 Цуглуулсан: <span id="score">0</span></div>
+        <div>🎯 Одоо харвах: <span id="target-hint" class="highlight">Морь 🐎</span></div>
     </div>
 
     <canvas id="gameCanvas" width="900" height="450"></canvas>
-    <div class="hint" id="log">Өөрийнхтэйгөө ижил дүрсийг онож цуглуулаарай!</div>
+
+    <div class="info">
+        💡 <b>Дүрэм:</b> Талбай дээр 15 шагай тогтмол байна. Зөвхөн өөрийн шагайтай <span class="highlight">ижил дүрсийг</span> онож цуглуулаарай!
+    </div>
 
 <script>
     const canvas = document.getElementById('gameCanvas');
@@ -35,11 +40,13 @@
     let isDragging = false;
     let startX, startY, mouseX, mouseY;
 
+    // Харвагч шагай
     let shooter = { 
         x: 100, y: 225, vx: 0, vy: 0, radius: 25, moving: false, 
         side: SHAGAI_SIDES[0] 
     };
 
+    // 15 Бай шагайг үүсгэх
     let targets = [];
     function refillTargets() {
         while (targets.length < 15) {
@@ -53,29 +60,29 @@
         }
     }
 
-    // ЗУРАГ ШИГ АЛТЛАГ ШАГАЙ ЗУРАХ ФУНКЦ
+    // 3D АЛТЛАГ ШАГАЙ ЗУРАХ ФУНКЦ
     function draw3DShagai(ctx, x, y, radius, side, isShooter) {
         ctx.save();
         ctx.translate(x, y);
 
-        // 1. Сүүдэр
+        // Сүүдэр
         ctx.shadowColor = "rgba(0,0,0,0.3)";
         ctx.shadowBlur = 10;
         ctx.shadowOffsetY = 5;
 
-        // 2. Алтлаг Gradient (image_d53cd6.jpg шиг эффект)
+        // Алтлаг Gradient
         let grad = ctx.createLinearGradient(-radius, -radius, radius, radius);
-        grad.addColorStop(0, "#8B6508");   // Сүүдэр
-        grad.addColorStop(0.3, "#D4AF37"); // Алт
+        grad.addColorStop(0, "#8B6508");   
+        grad.addColorStop(0.3, "#D4AF37"); 
         grad.addColorStop(0.5, "#FFFFFF"); // Гялбаа
-        grad.addColorStop(0.7, "#FFD700"); // Тод алт
-        grad.addColorStop(1, "#B8860B");   // Гүн алт
+        grad.addColorStop(0.7, "#FFD700"); 
+        grad.addColorStop(1, "#B8860B");   
 
         ctx.fillStyle = grad;
         ctx.strokeStyle = "rgba(139, 101, 8, 0.4)";
         ctx.lineWidth = 1;
 
-        // 3. Хэлбэрүүдийг зурах
+        // Хэлбэр зурах (Bezier Curves)
         ctx.beginPath();
         if (side.name === "Морь") {
             ctx.ellipse(0, 0, radius, radius * 0.7, 0, 0, Math.PI * 2);
@@ -95,7 +102,7 @@
         ctx.fill();
         ctx.stroke();
 
-        // 4. Дүрс нэмэх
+        // Дүрс (Emoji)
         ctx.shadowBlur = 0;
         ctx.shadowOffsetY = 0;
         ctx.fillStyle = "rgba(0,0,0,0.6)";
@@ -107,12 +114,13 @@
         ctx.restore();
     }
 
+    // Хулганы үйлдлүүд
     canvas.addEventListener('mousedown', e => {
         if (shooter.moving) return;
         const rect = canvas.getBoundingClientRect();
         let mX = e.clientX - rect.left;
         let mY = e.clientY - rect.top;
-        if (Math.hypot(mX - shooter.x, mY - shooter.y) < shooter.radius * 1.5) {
+        if (Math.hypot(mX - shooter.x, mY - shooter.y) < shooter.radius * 2) {
             isDragging = true; startX = mX; startY = mY;
         }
     });
@@ -134,38 +142,47 @@
     function gameLoop() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+        // Харвах чиглэл заах шугам
         if (isDragging) {
             ctx.beginPath();
             ctx.moveTo(shooter.x, shooter.y);
             ctx.lineTo(mouseX, mouseY);
-            ctx.strokeStyle = "rgba(0,0,0,0.2)";
+            ctx.strokeStyle = "rgba(0,0,0,0.1)";
+            ctx.setLineDash([5, 5]);
             ctx.stroke();
+            ctx.setLineDash([]);
         }
 
+        // Харвагчийг хөдөлгөх
         if (shooter.moving) {
             shooter.x += shooter.vx; shooter.y += shooter.vy;
-            shooter.vx *= 0.98; shooter.vy *= 0.98;
-            if (shooter.x < 20 || shooter.x > canvas.width - 20) shooter.vx *= -0.8;
-            if (shooter.y < 20 || shooter.y > canvas.height - 20) shooter.vy *= -0.8;
+            shooter.vx *= 0.985; shooter.vy *= 0.985; // Үрэлт
+
+            if (shooter.x < 25 || shooter.x > canvas.width - 25) shooter.vx *= -0.8;
+            if (shooter.y < 25 || shooter.y > canvas.height - 25) shooter.vy *= -0.8;
+
             if (Math.abs(shooter.vx) < 0.2 && Math.abs(shooter.vy) < 0.2) {
                 shooter.moving = false; shooter.x = 100; shooter.y = 225;
                 shooter.side = SHAGAI_SIDES[Math.floor(Math.random() * 4)];
-                document.getElementById('current-side').innerText = shooter.side.name + " " + shooter.side.icon;
+                document.getElementById('target-hint').innerText = shooter.side.name + " " + shooter.side.icon;
             }
         }
 
+        // Бай шагайнуудыг шалгах
         targets.forEach((t, i) => {
             if (t.active) {
                 let dist = Math.hypot(shooter.x - t.x, shooter.y - t.y);
                 if (dist < shooter.radius + t.radius) {
                     if (t.side.name === shooter.side.name) {
                         t.active = false;
-                        score += 10;
+                        score += 1;
                         document.getElementById('score').innerText = score;
                         targets.splice(i, 1);
-                        refillTargets();
+                        refillTargets(); // Устсан бол нөхөж 15 болгох
                     } else {
-                        t.x += shooter.vx * 0.5; t.y += shooter.vy * 0.5;
+                        // Өөр дүрс бол ойж холдох
+                        t.x += shooter.vx * 0.4;
+                        t.y += shooter.vy * 0.4;
                     }
                 }
                 draw3DShagai(ctx, t.x, t.y, t.radius, t.side, false);
