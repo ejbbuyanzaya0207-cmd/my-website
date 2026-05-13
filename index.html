@@ -88,7 +88,7 @@
     }
 
     .hero::after {
-      content: "🏠  🐎  🐑  🐫  🐐  🎲  🏹";
+      content: "url("ger.png") "  🐎  🐑  🐫  🐐  " url("shagai.png") "  🏹";
       position: absolute;
       left: 0;
       right: 0;
@@ -527,7 +527,7 @@
     function startLevel2() {
       const q = questions[1];
       document.getElementById('gameBox').innerHTML = `
-        <h3>🐸 2-Р ҮЕ: АЛАГ МЭЛХИЙ</h3>
+        <h3><img src="melhii.png" alt="Мэлхий" style="height: 35px; vertical-align: middle; margin-right: 8px;"> 2-Р ҮЕ: АЛАГ МЭЛХИЙ</h3>
         <p>${q.q}</p>
         <div class="choices">${q.c.map(x => `<button onclick="answerQuestion('${x}', '${q.a}', 3)">👉 ${x}</button>`).join('')}</div>`;
     }
@@ -537,7 +537,7 @@
       level = 3;
       updateUI();
       document.getElementById('gameBox').innerHTML = `
-        <h3>🎲 3-Р ҮЕ: ШАГАЙ АНГИЛАХ</h3>
+        <h3><img src="shagai.png" alt="Шагай" style="height: 35px; vertical-align: middle; margin-right: 8px;"> 3-Р ҮЕ: ШАГАЙ АНГИЛАХ</h3>
         <p>МОРЬ ШАГАЙГ СОНГООРОЙ. МОРЬ = 🐎</p>
         <div class="shagai-row">
           ${['🐎','🐑','🐫','🐐','🐎','🐑','🐎','🐐'].map(x => `<div class="shagai" onclick="selectShagai(this, '${x}')">${x}</div>`).join('')}
